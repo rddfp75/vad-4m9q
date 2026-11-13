@@ -101,7 +101,7 @@ function rb(i,k,t,x){var s=x[k]||0;return '<button class="rod'+(s===1?' v':s===2
 function est(i,k,v){var x=S.rev.d[S.cfg.vados[i].n];x[k]=(x[k]===v)?0:v;sv();draw()}
 function rod(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=((x[k]||0)+1)%3;if(x[k]!==2){x[k+"m"]=0;x[k+"a"]=""}sv();draw()}
 function rm(i,k,t,x){if(x[k]!==2)return '';var m=x[k+"m"]||0;
-  return '<div style="margin-top:8px;padding:10px;border-radius:12px;background:#fef2f2"><div style="font-size:14px;color:#7f1d1d;font-weight:500">Rodillo '+t+': ¿por qué está mal?</div><div class="row" style="flex-wrap:nowrap;margin-top:6px"><button class="p'+(m===1?' x':'')+'" onclick="rmot('+i+',\''+k+'\',1)">Desgaste</button><button class="p'+(m===2?' x':'')+'" onclick="rmot('+i+',\''+k+'\',2)">Roto</button></div><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Aviso SAP (solo números)" style="margin-top:6px" value="'+esc(x[k+"a"]||"")+'" oninput="rsap('+i+',\''+k+'\',this)"></div>'}
+  return '<div style="margin-top:8px;padding:10px;border-radius:12px;background:#fef2f2"><div style="font-size:14px;color:#7f1d1d;font-weight:500">Rodillo '+t+': ¿por qué está mal?</div><div class="row" style="flex-wrap:nowrap;margin-top:6px"><button class="p'+(m===1?' x':'')+'" onclick="rmot('+i+',\''+k+'\',1)">Desgaste</button><button class="p'+(m===2?' x':'')+'" onclick="rmot('+i+',\''+k+'\',2)">No gira</button></div><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Aviso SAP (solo números)" style="margin-top:6px" value="'+esc(x[k+"a"]||"")+'" oninput="rsap('+i+',\''+k+'\',this)"></div>'}
 function rmot(i,k,m){var x=S.rev.d[S.cfg.vados[i].n];x[k+"m"]=(x[k+"m"]===m)?0:m;sv();draw()}
 function rsap(i,k,el){var v=el.value.replace(/[^0-9]/g,'');if(v!==el.value)el.value=v;S.rev.d[S.cfg.vados[i].n][k+"a"]=v;sv()}
 function pend(){var r=[];S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n];if(x&&falta(x))r.push(i)});return r}
@@ -160,7 +160,7 @@ async function hacerPdf(){
   S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),ms=[];
     if(x.dos===false)ms.push("no dosifica · "+(x.sap?"aviso SAP "+x.sap:"aviso SAP pendiente"));else if(e==="BAJA"||e==="ALTA")ms.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
     if(x.gar===3)ms.push("garrafa vacía");if(x.vad===2)ms.push("vado sucio");
-    [["ri","izquierdo"],["rd","derecho"]].forEach(function(q){if(x[q[0]]===2)ms.push("rodillo "+q[1]+" mal · "+(x[q[0]+"m"]===1?"desgaste":x[q[0]+"m"]===2?"roto":"motivo sin indicar")+" · "+(x[q[0]+"a"]?"aviso SAP "+x[q[0]+"a"]:"aviso SAP pendiente"))});
+    [["ri","izquierdo"],["rd","derecho"]].forEach(function(q){if(x[q[0]]===2)ms.push("rodillo "+q[1]+" mal · "+(x[q[0]+"m"]===1?"desgaste":x[q[0]+"m"]===2?"no gira":"motivo sin indicar")+" · "+(x[q[0]+"a"]?"aviso SAP "+x[q[0]+"a"]:"aviso SAP pendiente"))});
     if(ms.length)bad.push([v,ms.join("; "),x.nota])});
   if(bad.length){
     tx("Puntos a revisar",M,y,13,B,"#991b1b");y-=8;
