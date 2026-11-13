@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f4e6b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600&display=swap" rel="stylesheet">
+<title>Vados sanitarios</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Barlow,-apple-system,system-ui,sans-serif;background:#eef2f4;color:#1a1d21;padding:12px 12px 90px;font-size:17px}
+h1{font-size:20px;margin:10px 0}
+.card{background:#fff;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px #0002}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font:inherit;border:0;border-radius:10px;padding:12px 14px;background:#1f4e6b;color:#fff}
+button.sec{background:#e5e7eb;color:#111}
+button.sel-si{background:#15803d;color:#fff}
+button.sel-no{background:#b91c1c;color:#fff}
+input,textarea{font:inherit;padding:10px;border:1px solid #cbd5e1;border-radius:10px;width:100%}
+input.n{width:110px}
+label{font-size:14px;color:#475569;display:block;margin:6px 0 2px}
+.badge{display:inline-block;padding:4px 10px;border-radius:99px;font-weight:600;font-size:15px}
+.ok{background:#dcfce7;color:#166534}.mal{background:#fee2e2;color:#991b1b}.nd{background:#e5e7eb;color:#475569}
+.small{font-size:14px;color:#64748b}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:10px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 6px #0002;display:flex;gap:8px}
+.bar button{flex:1}
+.hide{display:none}
+</style><script src="pdf-lib.min.js"></script></head><body>
+<h1>Vados sanitarios</h1>
+<div id="cfg" class="card hide">
+  <b>Configuración</b>
+  <div id="cfgPl"></div>
+  <label>Vados (uno por línea)</label><textarea id="cVados" rows="8"></textarea>
+  <p class="small">Rango propio de un vado: <i>Nombre | mín | máx</i></p>
+  <div class="row"><button onclick="guardarCfg()">Guardar</button><button class="sec" onclick="verCfg(false)">Cerrar</button></div>
+</div>
+<div id="main">
+  <div class="card row" style="justify-content:space-between">
+    <div><div class="small">Inicio</div><b id="hIni">—</b></div>
+    <div><div class="small">Fecha</div><b id="fecha"></b></div>
+    <button class="sec" onclick="verCfg(true)">⚙️</button>
+  </div>
+  <div class="card"><label style="margin-top:0">Revisor</label><input id="revisor" placeholder="Nombre y apellidos" oninput="setRev(this.value)"></div>
+  <div id="lista"></div>
+  <div id="res" class="card hide"><b>Revisión terminada</b><div id="resTxt" class="small" style="margin:6px 0"></div><button onclick="guardarPdf()">Guardar PDF</button><div id="pdfMsg" class="small" style="margin-top:8px"></div></div>
+</div>
+<div class="bar"><button class="sec" onclick="nueva()">Nueva</button><button onclick="fin()">Fin de revisión</button></div>
+<script>
+var DEF=[{"n": "SIN MATRÍCULA · Matadero · Cuadras · Acceso a cuadras", "p": "CS1", "b": ""}, {"n": "LAV-507 · Matadero · Zona sucia · Taller mantenimiento", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Zona sucia · Salida taller subcontrata", "p": "CS1", "b": "Bomba"}, {"n": "LAV-505 · Matadero · Zona sucia · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "LAV-508 · Matadero · Zona sucia · Entrada a producción", "p": "CS1", "b": "Venturi"}, {"n": "DDM-500 · Matadero · Zona sucia · Entrada a producción-desinfectador manos", "p": "CS1", "b": ""}, {"n": "LAV-506 · Matadero · Zona limpia · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "SIN MATRÍCULA · Matadero · Zona limpia · Entrada a producción", "p": "CS1", "b": "Venturi"}, {"n": "DDM-501 · Matadero · Zona limpia · Entrada a producción-desinfectador manos", "p": "CS1", "b": ""}, {"n": "SIN MATRÍCULA · Matadero · Zona limpia · Salida laboratorio", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Sala cabezas · Acceso producción (sección cabezas)", "p": "CS1", "b": "Venturi"}, {"n": "LAV-502 · Matadero · Sala cabezas · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "DDM-503 · Matadero · Sala cabezas · Desinfectador manos", "p": "CS1", "b": ""}, {"n": "SIN MATRÍCULA · Matadero · Tripería · Acceso producción", "p": "CS1", "b": "Venturi"}, {"n": "LAV-500 · Matadero · Tripería · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "DDM-502 · Matadero · Tripería · Desinfectador manos", "p": "CS1", "b": ""}, {"n": "LAV-509 · Matadero · Empaquetado matadero · Acceso producción", "p": "CS1", "b": "Venturi"}, {"n": "LVB-125 · Pasillo visitas · Lado matadero · Entrada matadero", "p": "CS1", "b": "Venturi"}, {"n": "LVB-125 · Pasillo visitas · Lado matadero · Salida matadero", "p": "CS1", "b": "Venturi"}, {"n": "LVB-126 · Pasillo visitas · Lado despiece · Entrada despiece", "p": "CS1", "b": "Venturi"}, {"n": "LVB-126 · Pasillo visitas · Lado despiece · Salida despiece", "p": "CS1", "b": "Venturi"}, {"n": "LVB-130 · Despiece · Entrada a producción · Lado derecho", "p": "CS1", "b": "Venturi"}, {"n": "LVB-129 · Despiece · Entrada a producción · Lado izquierdo", "p": "CS1", "b": "Venturi"}, {"n": "LAV-103 · Despiece · Salida de producción · Lado derecho", "p": "CS1", "b": "Bomba"}, {"n": "LAV-102 · Despiece · Salida de producción · Lado izquierdo", "p": "CS1", "b": "Bomba"}, {"n": "LAV-105 · Despiece · Sala dacor · Acceso cuarto de afilado", "p": "CS1", "b": ""}, {"n": "LAV-201 · Adobos · Entrada a producción · Acceso a producción/cafetería", "p": "CS1", "b": "Venturi"}, {"n": "LAV-200 · Fileteado exportación · Entrada a producción · Acceso a producción", "p": "CS1", "b": "Bomba"}, {"n":"Profilgate 1 · Hacia zona limpia","p":"CS1","k":"CS1P","b":"Bomba"},{"n":"Profilgate 2 · Hacia zona sucia","p":"CS1","k":"CS1P","b":"Bomba"},{"n": "LAV600 · Expediciones · Expediciones · Entrada/salida expediciones", "p": "CS3", "b": ""}, {"n": "LAV601 · Envasado · Cámara materia prima · Entrada/salida producción (vestuarios)", "p": "CS3", "b": ""}, {"n": "LAV602 · Envasado · Cámara materia prima · Entrada/salida producción (oficina)", "p": "CS3", "b": ""}];
+var PL0={CS1:{prod:"Divosan Extra",uni:"ppm QUAC",min:null,max:null},CS1P:{prod:"Divosan 2010",uni:"% p/p",min:0.5,max:null},CS3:{prod:"Divosan 2010",uni:"% p/p",min:0.5,max:null}};
+var S={cfg:{pl:JSON.parse(JSON.stringify(PL0)),vados:DEF.map(function(v){return {n:v.n,p:v.p,k:v.k,b:v.b,min:null,max:null}})},rev:null};
+function ld(){try{var c=localStorage.getItem("vados_cfg3");if(c)S.cfg=JSON.parse(c);var r=localStorage.getItem("vados_rev3");if(r)S.rev=JSON.parse(r)}catch(e){}}
+function sv(){try{localStorage.setItem("vados_cfg3",JSON.stringify(S.cfg));localStorage.setItem("vados_rev3",JSON.stringify(S.rev))}catch(e){}}
+function hora(){var d=new Date();return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
+function hoy(){var d=new Date();return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()}
+function pl(v){return S.cfg.pl[v.k||v.p]||{prod:"",uni:"",min:null,max:null}}
+function nueva(){S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};S.cfg.vados.forEach(function(v){S.rev.d[v.n]={dos:null,con:"",nota:""}});sv();draw();document.getElementById("res").classList.add("hide")}
+function rango(v){var p=pl(v);return [v.min!=null?v.min:p.min,v.max!=null?v.max:p.max]}
+function estado(v){var x=S.rev.d[v.n],r=rango(v);if(x.con===""||x.con==null)return null;var c=parseFloat(String(x.con).replace(",","."));if(isNaN(c))return null;if(r[0]==null&&r[1]==null)return "sin rango";if(r[0]!=null&&c<r[0])return "BAJA";if(r[1]!=null&&c>r[1])return "ALTA";return "OK"}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function draw(){
+  document.getElementById("fecha").textContent=S.rev?S.rev.fecha:hoy();
+  document.getElementById("hIni").textContent=S.rev?S.rev.ini:"—";
+  var L=document.getElementById("lista");L.innerHTML="";
+  if(!S.cfg.vados.length){L.innerHTML='<div class="card">Aún no hay vados. Pulsa ⚙️.</div>';return}
+  S.cfg.vados.forEach(function(v,i){
+    var x=S.rev.d[v.n]||(S.rev.d[v.n]={dos:null,con:"",nota:""}),e=estado(v),r=rango(v),p=pl(v);
+    if(i===0||(S.cfg.vados[i-1].k||S.cfg.vados[i-1].p)!==(v.k||v.p))L.insertAdjacentHTML("beforeend",'<h1>'+esc(v.p)+' · '+esc(p.prod)+'</h1>');
+    var cl=e==="OK"?"ok":(e==="BAJA"||e==="ALTA")?"mal":"nd";
+    var rt=(r[0]!=null||r[1]!=null)?("Correcto: "+(r[0]!=null?r[0]:"–")+" a "+(r[1]!=null?r[1]:"–")+" "+p.uni):"Rango sin definir";
+    var h='<div class="card"><b>'+(i+1)+". "+esc(v.n)+'</b> <span class="badge '+cl+'">'+(e||"pendiente")+'</span>'+
+    '<div class="small">'+(v.b?'Dosificación: '+esc(v.b)+' · ':'')+esc(rt)+'</div>'+
+    '<label>¿Dosifica producto?</label><div class="row">'+
+    '<button class="'+(x.dos===true?"sel-si":"sec")+'" onclick="dos('+i+',true)">Sí</button>'+
+    '<button class="'+(x.dos===false?"sel-no":"sec")+'" onclick="dos('+i+',false)">No</button></div>'+
+    (usaCol(v)?colHTML(i,x,p):'<label>Concentración ('+esc(p.uni)+')</label><input class="n" type="number" inputmode="decimal" value="'+esc(x.con)+'" oninput="con('+i+',this.value)" onchange="draw()">')+
+    '<label>Nota (opcional)</label><input value="'+esc(x.nota)+'" oninput="nota('+i+',this.value)"></div>';
+    L.insertAdjacentHTML("beforeend",h)});
+}
+var COL=[[0,"#ffef7a"],[10,"#fce36c"],[25,"#d4d16e"],[50,"#a4ba86"],[100,"#82af8d"],[250,"#539f9f"],[500,"#3c92a6"],[1000,"#3a98b1"]];
+function usaCol(v){return (pl(v).prod||"").toLowerCase().indexOf("extra")>-1}
+function colHTML(i,x,p){var s='<label>Compara la tira con la pantalla (mg/L)</label><div style="display:flex;justify-content:space-between;gap:2px;background:#f8fafc;padding:8px 4px 6px;border-radius:14px;border:1px solid #e2e8f0">';
+  COL.forEach(function(c){var on=String(x.con)===String(c[0]);s+='<button onclick="colSel('+i+','+c[0]+')" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;background:none;color:#334155"><span style="width:34px;height:34px;border-radius:50%;background:'+c[1]+';box-shadow:'+(on?'0 0 0 3px #fff,0 0 0 5px #1d4ed8':'inset 0 0 0 1px #0000001f')+'"></span><span style="font-size:12px;font-weight:'+(on?'700':'500')+';color:'+(on?'#1d4ed8':'#334155')+'">'+c[0]+'</span></button>'});
+  return s+'</div><div class="small" style="margin-top:6px">'+(x.con!==""?'Elegido: '+esc(x.con)+' '+esc(p.uni):'Brillo al máximo y sin modo nocturno')+'</div>'}
+function colSel(i,v){var x=S.rev.d[S.cfg.vados[i].n];x.con=(String(x.con)===String(v))?"":String(v);sv();draw()}
+function dos(i,b){S.rev.d[S.cfg.vados[i].n].dos=b;sv();draw()}
+function con(i,val){S.rev.d[S.cfg.vados[i].n].con=val;sv()}
+function nota(i,val){S.rev.d[S.cfg.vados[i].n].nota=val;sv()}
+function stats(){var n=S.cfg.vados.length,si=0,no=0,fu=0,pen=0;S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v);if(x.dos===true)si++;if(x.dos===false)no++;if(e==="BAJA"||e==="ALTA")fu++;if(x.dos===null&&x.con==="")pen++});return {n:n,si:si,no:no,fu:fu,pen:pen}}
+function setRev(v){S.cfg.revisor=v;var e=document.getElementById("revisor");e.style.borderColor="";sv()}
+function fin(){var rv=document.getElementById("revisor");if(!(S.cfg.revisor||"").trim()){rv.style.borderColor="#b91c1c";rv.placeholder="Escribe tu nombre para terminar";rv.focus();rv.scrollIntoView();return}
+  S.rev.fin=hora();sv();var t=stats();
+  document.getElementById("resTxt").innerHTML="Fin: "+S.rev.fin+" · "+t.n+" vados<br>Dosifican: "+t.si+" · No dosifican: "+t.no+" · Fuera de rango: "+t.fu+" · Sin revisar: "+t.pen;
+  document.getElementById("pdfMsg").textContent="";document.getElementById("res").classList.remove("hide");document.getElementById("res").scrollIntoView()}
+async function hacerPdf(){
+  var P=window.PDFLib;if(!P)return null;
+  var doc=await P.PDFDocument.create();
+  var F=await doc.embedFont(P.StandardFonts.Helvetica),B=await doc.embedFont(P.StandardFonts.HelveticaBold);
+  var W=595.28,H=841.89,M=36,BOT=50,page,y;
+  function C(h){return P.rgb(parseInt(h.substr(1,2),16)/255,parseInt(h.substr(3,2),16)/255,parseInt(h.substr(5,2),16)/255)}
+  var nh=false,cx={n:M+6,v:M+30,d:M+272,s:M+334,m:M+392,e:M+462};
+  function np(){page=doc.addPage([W,H]);y=H-M;nh=true}
+  function hdr(){[["Nº",cx.n],["Vado",cx.v],["Dosificación",cx.d],["¿Dosifica?",cx.s],["Medida",cx.m],["Estado",cx.e]].forEach(function(h){tx(h[0],h[1],y-9,7.5,B,"#64748b")});y-=16;nh=false}
+  function tx(t,x,yy,sz,f,col){page.drawText(String(t),{x:x,y:yy,size:sz,font:f||F,color:C(col||"#1a1d21")})}
+  function wid(t,sz,f){return (f||F).widthOfTextAtSize(String(t),sz)}
+  function wrap(t,mw,sz,f){var w=String(t).split(" "),l=[],c="";w.forEach(function(p){var n=c?c+" "+p:p;if(wid(n,sz,f)>mw&&c){l.push(c);c=p}else c=n});if(c)l.push(c);return l}
+  function rr(x,top,w,h,r,col){var p="M "+r+" 0 H "+(w-r)+" Q "+w+" 0 "+w+" "+r+" V "+(h-r)+" Q "+w+" "+h+" "+(w-r)+" "+h+" H "+r+" Q 0 "+h+" 0 "+(h-r)+" V "+r+" Q 0 0 "+r+" 0 Z";page.drawSvgPath(p,{x:x,y:top,color:C(col)})}
+  function chip(t,x,yBase,bg,fg){var w=wid(t,8,B)+14;rr(x,yBase+10,w,13,6.5,bg);tx(t,x+7,yBase,8,B,fg)}
+  function pt(s){return String(s).replace(/\./g,",")}
+  var st=stats(),COLS={ok:["#dcfce7","#166534"],mal:["#fee2e2","#991b1b"],nd:["#e5e7eb","#475569"]};
+  np();nh=false;
+  page.drawRectangle({x:0,y:H-92,width:W,height:92,color:C("#1e3a8a")});
+  tx("Revisión de vados sanitarios",M,H-46,22,B,"#ffffff");
+  tx("Informe de revisión · "+S.rev.fecha,M,H-66,10.5,F,"#bfdbfe");
+  y=H-92-26;
+  [["FECHA",S.rev.fecha],["HORA",S.rev.ini+" - "+S.rev.fin],["REVISOR",(S.cfg.revisor||"").trim()]].forEach(function(m,i){var x=M+i*(i===2?0:0)+[0,130,260][i];tx(m[0],x,y,8,B,"#64748b");tx(m[1],x,y-14,11.5,B)});
+  y-=44;
+  var tw=(W-2*M-4*8)/5,T=[["Vados",st.n,"#1e3a8a"],["Dosifican",st.si,"#166534"],["No dosifican",st.no,st.no?"#b91c1c":"#334155"],["Fuera de rango",st.fu,st.fu?"#b91c1c":"#334155"],["Sin revisar",st.pen,st.pen?"#b45309":"#334155"]];
+  T.forEach(function(t,i){var x=M+i*(tw+8);rr(x,y,tw,50,8,"#f1f5f9");tx(t[1],x+10,y-28,22,B,t[2]);tx(t[0],x+10,y-43,8.5,F,"#64748b")});
+  y-=50+20;
+  var bad=[];
+  S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),m=null;
+    if(x.dos===false)m="no dosifica";else if(e==="BAJA"||e==="ALTA")m="concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")";
+    if(m)bad.push([v,m,x.nota])});
+  if(bad.length){
+    tx("Puntos a revisar",M,y,13,B,"#991b1b");y-=8;
+    var bh=14;bad.forEach(function(b){bh+=wrap(b[0].n+": "+b[1]+(b[2]?" - "+b[2]:""),W-2*M-30,9,F).length*11+3});
+    if(y-bh<BOT){np()}
+    rr(M,y,W-2*M,bh,8,"#fef2f2");var yy=y-18;
+    bad.forEach(function(b){var ls=wrap(b[0].n+": "+b[1]+(b[2]?" - "+b[2]:""),W-2*M-30,9,F);
+      page.drawCircle({x:M+13,y:yy+3,size:2,color:C("#b91c1c")});
+      ls.forEach(function(l,i){tx(l,M+22,yy-i*11,9,F,"#7f1d1d")});yy-=ls.length*11+3});
+    y-=bh+18}
+  var last="",ci=0;
+  S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n],e=estado(v),p=pl(v),g=v.k||v.p;
+    var parts=v.n.split(" · "),mat=parts.shift(),rest=parts.join(" · "),rl=wrap(rest,236,8,F),nl=x.nota?wrap("Nota: "+x.nota,236,8,F):[];
+    var rh=16+(1+rl.length+nl.length-1)*10+4;if(rh<26)rh=26;
+    if(g!==last){
+      if(y-(24+18+rh)<BOT)np();
+      last=g;ci=0;rr(M,y,W-2*M,24,6,"#e0e7ff");tx(v.p+" · "+p.prod,M+10,y-16,11.5,B,"#1e3a8a");
+      var rt=p.uni+((p.min!=null||p.max!=null)?" · correcto "+(p.min!=null?pt(p.min):"-")+" a "+(p.max!=null?pt(p.max):"-"):"");var rw=wid(rt,8.5,F);tx(rt,W-M-10-rw,y-16,8.5,F,"#4338ca");
+      y-=24+4;
+      hdr()}
+    if(y-rh<BOT){np();hdr()}
+    if(ci%2===0)page.drawRectangle({x:M,y:y-rh,width:W-2*M,height:rh,color:C("#f8fafc")});
+    page.drawLine({start:{x:M,y:y-rh},end:{x:W-M,y:y-rh},thickness:0.4,color:C("#e2e8f0")});
+    var ty=y-13;
+    tx(i+1,cx.n,ty,8.5,F,"#64748b");tx(mat,cx.v,ty,9.5,B);
+    var lines=rl.concat(nl),ly=ty-10;
+    rl.forEach(function(l){tx(l,cx.v,ly,8,F,"#64748b");ly-=10});nl.forEach(function(l){tx(l,cx.v,ly,8,F,"#92400e");ly-=10});
+    tx(v.b||"-",cx.d,ty,8.5,F,"#334155");
+    if(x.dos===true)chip("SÍ",cx.s,ty-1,"#dcfce7","#166534");else if(x.dos===false)chip("NO",cx.s,ty-1,"#fee2e2","#991b1b");else tx("-",cx.s+4,ty,9,F,"#94a3b8");
+    if(x.con!=="")tx(pt(x.con)+" "+p.uni.replace(" QUAC",""),cx.m,ty,9,B);else tx("-",cx.m,ty,9,F,"#94a3b8");
+    if(e){var k=e==="OK"?COLS.ok:(e==="sin rango"?COLS.nd:COLS.mal);chip(e==="sin rango"?"SIN RANGO":e,cx.e,ty-1,k[0],k[1])}else tx("-",cx.e+4,ty,9,F,"#94a3b8");
+    y-=rh;ci++});
+  if(y-70<BOT)np();
+  y-=30;tx("Revisado por",M,y,8,B,"#64748b");tx((S.cfg.revisor||"").trim(),M,y-14,11,B);
+  page.drawLine({start:{x:W-M-200,y:y-34},end:{x:W-M,y:y-34},thickness:0.6,color:C("#94a3b8")});tx("Firma",W-M-200,y-46,8,F,"#64748b");
+  var pgs=doc.getPages();pgs.forEach(function(pg,i){
+    pg.drawLine({start:{x:M,y:32},end:{x:W-M,y:32},thickness:0.4,color:C("#cbd5e1")});
+    pg.drawText("Revisión de vados sanitarios · "+S.rev.fecha,{x:M,y:20,size:8,font:F,color:C("#94a3b8")});
+    var t="Página "+(i+1)+" de "+pgs.length;pg.drawText(t,{x:W-M-F.widthOfTextAtSize(t,8),y:20,size:8,font:F,color:C("#94a3b8")})});
+  return await doc.save()}
+
+async function guardarPdf(){var m=document.getElementById("pdfMsg");
+  try{var bytes=await hacerPdf();if(!bytes){m.textContent="No se ha podido crear el PDF. Vuelve a probar.";return}
+    var f=S.rev.fecha.split("/").reverse().join("-"),fn="Vados_sanitarios_"+f+".pdf",file=new File([bytes],fn,{type:"application/pdf"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:"Revisión de vados sanitarios"});m.textContent="Listo. Elige tu correo en el menú de compartir.";return}
+      catch(e){if(e&&e.name==="AbortError"){m.textContent="Cancelado.";return}}}
+    var u=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);
+    m.textContent="PDF descargado. Adjúntalo al correo desde Descargas."}
+  catch(e){m.textContent="No se pudo crear el PDF."}}
+function verCfg(b){var c=document.getElementById("cfg");c.classList.toggle("hide",!b);
+  if(!b)return;
+  var h="";Object.keys(S.cfg.pl).forEach(function(k){var p=S.cfg.pl[k];
+    h+='<label><b>'+(k==="CS1P"?"CS1 · Profilgate":k)+'</b> · producto y unidad</label><div class="row"><input id="pp_'+k+'" value="'+esc(p.prod)+'" style="flex:2"><input id="pu_'+k+'" value="'+esc(p.uni)+'" style="flex:1"></div>'+
+    '<div class="row"><div><label>Mínimo</label><input class="n" id="pm_'+k+'" type="number" inputmode="decimal" value="'+(p.min==null?"":p.min)+'"></div><div><label>Máximo</label><input class="n" id="px_'+k+'" type="number" inputmode="decimal" value="'+(p.max==null?"":p.max)+'"></div></div>'});
+  document.getElementById("cfgPl").innerHTML=h;
+  document.getElementById("cVados").value=S.cfg.vados.map(function(v){return v.n+((v.min!=null||v.max!=null)?" | "+(v.min!=null?v.min:"")+" | "+(v.max!=null?v.max:""):"")}).join("\n")}
+function num(s){s=String(s).trim().replace(",",".");return s===""||isNaN(parseFloat(s))?null:parseFloat(s)}
+function guardarCfg(){
+  Object.keys(S.cfg.pl).forEach(function(k){S.cfg.pl[k]={prod:document.getElementById("pp_"+k).value.trim(),uni:document.getElementById("pu_"+k).value.trim(),min:num(document.getElementById("pm_"+k).value),max:num(document.getElementById("px_"+k).value)}});
+  S.cfg.vados=document.getElementById("cVados").value.split("\n").map(function(l){return l.trim()}).filter(Boolean).map(function(l){var q=l.split("|"),nn=q[0].trim(),o=S.cfg.vados.filter(function(z){return z.n===nn})[0]||{};return {n:nn,p:o.p||"",k:o.k,b:o.b||"",min:q.length>1?num(q[1]):null,max:q.length>2?num(q[2]):null}});
+  if(!S.rev)S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};
+  S.cfg.vados.forEach(function(v){if(!S.rev.d[v.n])S.rev.d[v.n]={dos:null,con:"",nota:""}});
+  sv();verCfg(false);draw()}
+ld();document.getElementById("revisor").value=S.cfg.revisor||"";if(!S.rev)S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};
+S.cfg.vados.forEach(function(v){if(!S.rev.d[v.n])S.rev.d[v.n]={dos:null,con:"",nota:""}});
+draw();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+</script></body></html>
