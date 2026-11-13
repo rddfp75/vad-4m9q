@@ -26,6 +26,13 @@ label{font-size:14px;color:#475569;display:block;margin:6px 0 2px}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:10px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 6px #0002;display:flex;gap:8px}
 .bar button{flex:1}
 .hide{display:none}
+.f{display:flex;align-items:center;gap:6px;margin-top:8px}.f>span{width:62px;font-size:13px;color:#475569;flex:none}
+.p{flex:1;padding:9px 2px;border-radius:10px;background:#e5e7eb;color:#111;text-align:center;font-size:13px}
+.p.v{background:#15803d;color:#fff}.p.n{background:#e07b00;color:#fff}.p.x{background:#b91c1c;color:#fff}
+.rod{flex:1;padding:8px 4px;border-radius:12px;background:#e5e7eb;color:#111;text-align:center;font-size:13px;line-height:1.25}
+.rod.v{background:#15803d;color:#fff}.rod.x{background:#b91c1c;color:#fff}
+.fal{display:inline-block;padding:3px 10px;border-radius:99px;font-weight:600;font-size:13px;background:#fde8c8;color:#8a4b00;margin-left:4px}
+.sep{height:1px;background:#e2e8f0;margin:12px 0 4px}
 </style><script src="pdf-lib.min.js"></script></head><body>
 <h1>Vados sanitarios</h1>
 <div id="cfg" class="card hide">
@@ -43,7 +50,8 @@ label{font-size:14px;color:#475569;display:block;margin:6px 0 2px}
   </div>
   <div class="card"><label style="margin-top:0">Revisor</label><input id="revisor" placeholder="Nombre y apellidos" oninput="setRev(this.value)"></div>
   <div id="lista"></div>
-  <div id="res" class="card hide"><b>Revisión terminada</b><div id="resTxt" class="small" style="margin:6px 0"></div><button onclick="guardarPdf()">Guardar PDF</button><div id="pdfMsg" class="small" style="margin-top:8px"></div></div>
+  <div id="res" class="card hide"><b>Revisión terminada</b><div id="resTxt" class="small" style="margin:6px 0"></div><button onclick="guardarPdf()">Guardar PDF</button><div id="pdfMsg" class="small" style="margin-top:8px"></div>
+  <div id="limp" style="margin-top:14px"></div></div>
 </div>
 <div class="bar"><button class="sec" onclick="nueva()">Nueva</button><button onclick="fin()">Fin de revisión</button></div>
 <script>
@@ -55,7 +63,7 @@ function sv(){try{localStorage.setItem("vados_cfg3",JSON.stringify(S.cfg));local
 function hora(){var d=new Date();return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
 function hoy(){var d=new Date();return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()}
 function pl(v){return S.cfg.pl[v.k||v.p]||{prod:"",uni:"",min:null,max:null}}
-function nueva(){S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};S.cfg.vados.forEach(function(v){S.rev.d[v.n]={dos:null,con:"",nota:""}});sv();draw();document.getElementById("res").classList.add("hide")}
+function nueva(){S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};S.cfg.vados.forEach(function(v){S.rev.d[v.n]={dos:null,con:"",nota:"",gar:0,vad:0,ri:0,rd:0}});sv();draw();LM();document.getElementById("res").classList.add("hide")}
 function rango(v){var p=pl(v);return [v.min!=null?v.min:p.min,v.max!=null?v.max:p.max]}
 function estado(v){var x=S.rev.d[v.n],r=rango(v);if(x.con===""||x.con==null)return null;var c=parseFloat(String(x.con).replace(",","."));if(isNaN(c))return null;if(r[0]==null&&r[1]==null)return "sin rango";if(r[0]!=null&&c<r[0])return "BAJA";if(r[1]!=null&&c>r[1])return "ALTA";return "OK"}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -65,19 +73,29 @@ function draw(){
   var L=document.getElementById("lista");L.innerHTML="";
   if(!S.cfg.vados.length){L.innerHTML='<div class="card">Aún no hay vados. Pulsa ⚙️.</div>';return}
   S.cfg.vados.forEach(function(v,i){
-    var x=S.rev.d[v.n]||(S.rev.d[v.n]={dos:null,con:"",nota:""}),e=estado(v),r=rango(v),p=pl(v);
+    var x=S.rev.d[v.n]||(S.rev.d[v.n]={dos:null,con:"",nota:"",gar:0,vad:0,ri:0,rd:0}),e=estado(v),r=rango(v),p=pl(v);
     if(i===0||(S.cfg.vados[i-1].k||S.cfg.vados[i-1].p)!==(v.k||v.p))L.insertAdjacentHTML("beforeend",'<h1>'+esc(v.p)+' · '+esc(p.prod)+'</h1>');
     var cl=e==="OK"?"ok":(e==="BAJA"||e==="ALTA")?"mal":"nd";
     var rt=(r[0]!=null||r[1]!=null)?("Correcto: "+(r[0]!=null?r[0]:"–")+" a "+(r[1]!=null?r[1]:"–")+" "+p.uni):"Rango sin definir";
-    var h='<div class="card"><b>'+(i+1)+". "+esc(v.n)+'</b> <span class="badge '+cl+'">'+(e||"pendiente")+'</span>'+
+    var fa=falta(x);
+    var h='<div class="card"><b>'+(i+1)+". "+esc(v.n)+'</b> <span class="badge '+cl+'">'+(e||"pendiente")+'</span>'+(fa?'<span class="fal">faltan '+fa+'</span>':'')+
     '<div class="small">'+(v.b?'Dosificación: '+esc(v.b)+' · ':'')+esc(rt)+'</div>'+
     '<label>¿Dosifica producto?</label><div class="row">'+
     '<button class="'+(x.dos===true?"sel-si":"sec")+'" onclick="dos('+i+',true)">Sí</button>'+
     '<button class="'+(x.dos===false?"sel-no":"sec")+'" onclick="dos('+i+',false)">No</button></div>'+
     (usaCol(v)?colHTML(i,x,p):'<label>Concentración ('+esc(p.uni)+')</label><input class="n" type="number" inputmode="decimal" value="'+esc(x.con)+'" oninput="con('+i+',this.value)" onchange="draw()">')+
+    '<div class="sep"></div>'+
+    '<div class="f"><span>Garrafa</span>'+bt(i,"gar",1,"Llena","v",x)+bt(i,"gar",2,"Media","n",x)+bt(i,"gar",3,"Vacía","x",x)+'</div>'+
+    '<div class="f"><span>Vado</span>'+bt(i,"vad",1,"Limpio","v",x)+bt(i,"vad",2,"Sucio","x",x)+'</div>'+
+    '<label style="margin-top:10px">Rodillos (toca para cambiar)</label><div class="row" style="flex-wrap:nowrap">'+rb(i,"ri","Izquierdo",x)+rb(i,"rd","Derecho",x)+'</div>'+
     '<label>Nota (opcional)</label><input value="'+esc(x.nota)+'" oninput="nota('+i+',this.value)"></div>';
     L.insertAdjacentHTML("beforeend",h)});
 }
+function bt(i,k,v,t,c,x){return '<button class="p'+(x[k]===v?' '+c:'')+'" onclick="est('+i+',\''+k+'\','+v+')">'+t+'</button>'}
+function rb(i,k,t,x){var s=x[k]||0;return '<button class="rod'+(s===1?' v':s===2?' x':'')+'" onclick="rod('+i+',\''+k+'\')">'+t+'<br><b>'+(s===1?'Bien':s===2?'Mal':'—')+'</b></button>'}
+function est(i,k,v){var x=S.rev.d[S.cfg.vados[i].n];x[k]=(x[k]===v)?0:v;sv();draw()}
+function rod(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=((x[k]||0)+1)%3;sv();draw()}
+function falta(x){return (x.dos===null?1:0)+(x.gar?0:1)+(x.vad?0:1)+(x.ri?0:1)+(x.rd?0:1)}
 var COL=[[0,"#ffef7a"],[10,"#fce36c"],[25,"#d4d16e"],[50,"#a4ba86"],[100,"#82af8d"],[250,"#539f9f"],[500,"#3c92a6"],[1000,"#3a98b1"]];
 function usaCol(v){return (pl(v).prod||"").toLowerCase().indexOf("extra")>-1}
 function colHTML(i,x,p){var s='<label>Compara la tira con la pantalla (mg/L)</label><div style="display:flex;justify-content:space-between;gap:2px;background:#f8fafc;padding:8px 4px 6px;border-radius:14px;border:1px solid #e2e8f0">';
@@ -87,21 +105,22 @@ function colSel(i,v){var x=S.rev.d[S.cfg.vados[i].n];x.con=(String(x.con)===Stri
 function dos(i,b){S.rev.d[S.cfg.vados[i].n].dos=b;sv();draw()}
 function con(i,val){S.rev.d[S.cfg.vados[i].n].con=val;sv()}
 function nota(i,val){S.rev.d[S.cfg.vados[i].n].nota=val;sv()}
-function stats(){var n=S.cfg.vados.length,si=0,no=0,fu=0,pen=0;S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v);if(x.dos===true)si++;if(x.dos===false)no++;if(e==="BAJA"||e==="ALTA")fu++;if(x.dos===null&&x.con==="")pen++});return {n:n,si:si,no:no,fu:fu,pen:pen}}
+function stats(){var n=S.cfg.vados.length,si=0,no=0,fu=0,pen=0,gv=0,su=0,rm=0,fl=0;S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v);if(x.gar===3)gv++;if(x.vad===2)su++;if(x.ri===2)rm++;if(x.rd===2)rm++;fl+=falta(x);if(x.dos===true)si++;if(x.dos===false)no++;if(e==="BAJA"||e==="ALTA")fu++;if(x.dos===null&&x.con==="")pen++});return {n:n,si:si,no:no,fu:fu,pen:pen,gv:gv,su:su,rm:rm,fl:fl}}
 function setRev(v){S.cfg.revisor=v;var e=document.getElementById("revisor");e.style.borderColor="";sv()}
 function fin(){var rv=document.getElementById("revisor");if(!(S.cfg.revisor||"").trim()){rv.style.borderColor="#b91c1c";rv.placeholder="Escribe tu nombre para terminar";rv.focus();rv.scrollIntoView();return}
+  var t0=stats();if(t0.fl&&!confirm('Faltan '+t0.fl+' datos por marcar (garrafa, vado, rodillos o dosificación). ¿Terminar igualmente?'))return;
   S.rev.fin=hora();sv();var t=stats();
-  document.getElementById("resTxt").innerHTML="Fin: "+S.rev.fin+" · "+t.n+" vados<br>Dosifican: "+t.si+" · No dosifican: "+t.no+" · Fuera de rango: "+t.fu+" · Sin revisar: "+t.pen;
-  document.getElementById("pdfMsg").textContent="";document.getElementById("res").classList.remove("hide");document.getElementById("res").scrollIntoView()}
+  document.getElementById("resTxt").innerHTML="Fin: "+S.rev.fin+" · "+t.n+" vados<br>Dosifican: "+t.si+" · No dosifican: "+t.no+" · Fuera de rango: "+t.fu+" · Sin revisar: "+t.pen+"<br>Garrafas vacías: "+t.gv+" · Vados sucios: "+t.su+" · Rodillos mal: "+t.rm;
+  document.getElementById("pdfMsg").textContent="";LM();document.getElementById("res").classList.remove("hide");document.getElementById("res").scrollIntoView()}
 async function hacerPdf(){
   var P=window.PDFLib;if(!P)return null;
   var doc=await P.PDFDocument.create();
   var F=await doc.embedFont(P.StandardFonts.Helvetica),B=await doc.embedFont(P.StandardFonts.HelveticaBold);
   var W=595.28,H=841.89,M=36,BOT=50,page,y;
   function C(h){return P.rgb(parseInt(h.substr(1,2),16)/255,parseInt(h.substr(3,2),16)/255,parseInt(h.substr(5,2),16)/255)}
-  var nh=false,cx={n:M+6,v:M+30,d:M+272,s:M+334,m:M+392,e:M+462};
+  var nh=false,cx={n:M+4,v:M+20,d:M+162,s:M+208,m:M+248,e:M+298,g:M+358,vd:M+404,r:M+454};
   function np(){page=doc.addPage([W,H]);y=H-M;nh=true}
-  function hdr(){[["Nº",cx.n],["Vado",cx.v],["Dosificación",cx.d],["¿Dosifica?",cx.s],["Medida",cx.m],["Estado",cx.e]].forEach(function(h){tx(h[0],h[1],y-9,7.5,B,"#64748b")});y-=16;nh=false}
+  function hdr(){[["Nº",cx.n],["Vado",cx.v],["Dosificación",cx.d],["¿Dosifica?",cx.s],["Medida",cx.m],["Estado",cx.e],["Garrafa",cx.g],["Vado",cx.vd],["Rodillos",cx.r]].forEach(function(h){tx(h[0],h[1],y-9,7.5,B,"#64748b")});y-=16;nh=false}
   function tx(t,x,yy,sz,f,col){page.drawText(String(t),{x:x,y:yy,size:sz,font:f||F,color:C(col||"#1a1d21")})}
   function wid(t,sz,f){return (f||F).widthOfTextAtSize(String(t),sz)}
   function wrap(t,mw,sz,f){var w=String(t).split(" "),l=[],c="";w.forEach(function(p){var n=c?c+" "+p:p;if(wid(n,sz,f)>mw&&c){l.push(c);c=p}else c=n});if(c)l.push(c);return l}
@@ -118,11 +137,15 @@ async function hacerPdf(){
   y-=44;
   var tw=(W-2*M-4*8)/5,T=[["Vados",st.n,"#1e3a8a"],["Dosifican",st.si,"#166534"],["No dosifican",st.no,st.no?"#b91c1c":"#334155"],["Fuera de rango",st.fu,st.fu?"#b91c1c":"#334155"],["Sin revisar",st.pen,st.pen?"#b45309":"#334155"]];
   T.forEach(function(t,i){var x=M+i*(tw+8);rr(x,y,tw,50,8,"#f1f5f9");tx(t[1],x+10,y-28,22,B,t[2]);tx(t[0],x+10,y-43,8.5,F,"#64748b")});
+  y-=50+8;
+  [["Garrafas vacías",st.gv,st.gv?"#b91c1c":"#334155"],["Vados sucios",st.su,st.su?"#b91c1c":"#334155"],["Rodillos mal",st.rm,st.rm?"#b91c1c":"#334155"]].forEach(function(t,i){var x=M+i*(tw+8);rr(x,y,tw,50,8,"#f1f5f9");tx(t[1],x+10,y-28,22,B,t[2]);tx(t[0],x+10,y-43,8.5,F,"#64748b")});
   y-=50+20;
   var bad=[];
-  S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),m=null;
-    if(x.dos===false)m="no dosifica";else if(e==="BAJA"||e==="ALTA")m="concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")";
-    if(m)bad.push([v,m,x.nota])});
+  S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),ms=[];
+    if(x.dos===false)ms.push("no dosifica");else if(e==="BAJA"||e==="ALTA")ms.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
+    if(x.gar===3)ms.push("garrafa vacía");if(x.vad===2)ms.push("vado sucio");
+    if(x.ri===2&&x.rd===2)ms.push("rodillos izquierdo y derecho mal");else if(x.ri===2)ms.push("rodillo izquierdo mal");else if(x.rd===2)ms.push("rodillo derecho mal");
+    if(ms.length)bad.push([v,ms.join(" · "),x.nota])});
   if(bad.length){
     tx("Puntos a revisar",M,y,13,B,"#991b1b");y-=8;
     var bh=14;bad.forEach(function(b){bh+=wrap(b[0].n+": "+b[1]+(b[2]?" - "+b[2]:""),W-2*M-30,9,F).length*11+3});
@@ -134,7 +157,7 @@ async function hacerPdf(){
     y-=bh+18}
   var last="",ci=0;
   S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n],e=estado(v),p=pl(v),g=v.k||v.p;
-    var parts=v.n.split(" · "),mat=parts.shift(),rest=parts.join(" · "),rl=wrap(rest,236,8,F),nl=x.nota?wrap("Nota: "+x.nota,236,8,F):[];
+    var parts=v.n.split(" · "),mat=parts.shift(),rest=parts.join(" · "),rl=wrap(rest,138,8,F),nl=x.nota?wrap("Nota: "+x.nota,138,8,F):[];
     var rh=16+(1+rl.length+nl.length-1)*10+4;if(rh<26)rh=26;
     if(g!==last){
       if(y-(24+18+rh)<BOT)np();
@@ -153,7 +176,12 @@ async function hacerPdf(){
     if(x.dos===true)chip("SÍ",cx.s,ty-1,"#dcfce7","#166534");else if(x.dos===false)chip("NO",cx.s,ty-1,"#fee2e2","#991b1b");else tx("-",cx.s+4,ty,9,F,"#94a3b8");
     if(x.con!=="")tx(pt(x.con)+" "+p.uni.replace(" QUAC",""),cx.m,ty,9,B);else tx("-",cx.m,ty,9,F,"#94a3b8");
     if(e){var k=e==="OK"?COLS.ok:(e==="sin rango"?COLS.nd:COLS.mal);chip(e==="sin rango"?"SIN RANGO":e,cx.e,ty-1,k[0],k[1])}else tx("-",cx.e+4,ty,9,F,"#94a3b8");
+    var G=[null,["LLENA","#dcfce7","#166534"],["MEDIA","#ffedd5","#9a3412"],["VACÍA","#fee2e2","#991b1b"]][x.gar||0];if(G)chip(G[0],cx.g,ty-1,G[1],G[2]);else tx("-",cx.g+4,ty,9,F,"#94a3b8");
+    var V=[null,["LIMPIO","#dcfce7","#166534"],["SUCIO","#fee2e2","#991b1b"]][x.vad||0];if(V)chip(V[0],cx.vd,ty-1,V[1],V[2]);else tx("-",cx.vd+4,ty,9,F,"#94a3b8");
+    [["I",x.ri,0],["D",x.rd,24]].forEach(function(r){if(r[1]===1)chip(r[0],cx.r+r[2],ty-1,"#dcfce7","#166534");else if(r[1]===2)chip(r[0],cx.r+r[2],ty-1,"#fee2e2","#991b1b");else tx("-",cx.r+r[2]+4,ty,9,F,"#94a3b8")});
     y-=rh;ci++});
+  if(y-90<BOT)np();
+  y-=14;tx("Rodillos: I = izquierdo, D = derecho · verde = bien, rojo = mal",M,y,7.5,F,"#94a3b8");
   if(y-70<BOT)np();
   y-=30;tx("Revisado por",M,y,8,B,"#64748b");tx((S.cfg.revisor||"").trim(),M,y-14,11,B);
   page.drawLine({start:{x:W-M-200,y:y-34},end:{x:W-M,y:y-34},thickness:0.6,color:C("#94a3b8")});tx("Firma",W-M-200,y-46,8,F,"#64748b");
@@ -172,6 +200,64 @@ async function guardarPdf(){var m=document.getElementById("pdfMsg");
     var u=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);
     m.textContent="PDF descargado. Adjúntalo al correo desde Descargas."}
   catch(e){m.textContent="No se pudo crear el PDF."}}
+function itemsLimp(){var g=[],v=[];S.cfg.vados.forEach(function(d){var x=S.rev.d[d.n]||{};if(x.gar===3)g.push([d,x.nota]);if(x.vad===2)v.push([d,x.nota])});return {g:g,v:v}}
+function LM(){var e=document.getElementById("limp");if(!e)return;if(!S.rev||!S.rev.fin){e.innerHTML="";return}
+  var it=itemsLimp(),n=it.g.length+it.v.length;
+  if(!n){e.innerHTML='<b>Parte para limpieza</b><div class="small" style="margin:6px 0">Sin avisos para limpieza.</div>';return}
+  e.innerHTML='<b>Parte para limpieza</b><div class="small" style="margin:6px 0">Garrafas vacías: '+it.g.length+' · Vados sucios: '+it.v.length+'</div><div class="row"><button onclick="limpPdf()" style="flex:1">PDF</button><button onclick="limpWa()" style="flex:1;background:#15803d">WhatsApp</button></div><div id="limpMsg" class="small" style="margin-top:8px"></div>'}
+function nom(d){var q=d.n.split(" · "),m=q.shift();return [m,q.join(" · ")]}
+function limpTxt(){var it=itemsLimp(),L=["*Parte para limpieza · "+S.rev.fecha+"*",""];
+  function sec(t,a){if(!a.length)return;L.push("*"+t+" ("+a.length+")*");a.forEach(function(z){var q=nom(z[0]);L.push("• "+q[0]+(q[1]?" · "+q[1]:"")+(z[1]?" - "+z[1]:""))});L.push("")}
+  sec("Garrafas vacías",it.g);sec("Vados sucios",it.v);L.push((S.cfg.revisor||"").trim());return L.join("\n")}
+function limpWa(){var m=document.getElementById("limpMsg");window.open("https://wa.me/?text="+encodeURIComponent(limpTxt()),"_blank");m.textContent="Elige el chat de limpieza en WhatsApp."}
+async function limpPdf(){var m=document.getElementById("limpMsg");
+  try{var bytes=await hacerPdfLimp();if(!bytes){m.textContent="No se ha podido crear el PDF.";return}
+    var f=S.rev.fecha.split("/").reverse().join("-"),fn="Parte_limpieza_"+f+".pdf",file=new File([bytes],fn,{type:"application/pdf"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:"Parte para limpieza"});m.textContent="Listo.";return}
+      catch(e){if(e&&e.name==="AbortError"){m.textContent="Cancelado.";return}}}
+    var u=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);
+    m.textContent="PDF descargado."}
+  catch(e){m.textContent="No se pudo crear el PDF."}}
+async function hacerPdfLimp(){
+  var P=window.PDFLib;if(!P)return null;
+  var doc=await P.PDFDocument.create(),F=await doc.embedFont(P.StandardFonts.Helvetica),B=await doc.embedFont(P.StandardFonts.HelveticaBold);
+  var W=595.28,H=841.89,M=36,BOT=50,page,y;
+  function C(h){return P.rgb(parseInt(h.substr(1,2),16)/255,parseInt(h.substr(3,2),16)/255,parseInt(h.substr(5,2),16)/255)}
+  function tx(t,x,yy,sz,f,col){page.drawText(String(t),{x:x,y:yy,size:sz,font:f||F,color:C(col||"#1a1d21")})}
+  function wid(t,sz,f){return (f||F).widthOfTextAtSize(String(t),sz)}
+  function wrap(t,mw,sz,f){var w=String(t).split(" "),l=[],c="";w.forEach(function(p){var n=c?c+" "+p:p;if(wid(n,sz,f)>mw&&c){l.push(c);c=p}else c=n});if(c)l.push(c);return l}
+  function rr(x,top,w,h,r,col){var p="M "+r+" 0 H "+(w-r)+" Q "+w+" 0 "+w+" "+r+" V "+(h-r)+" Q "+w+" "+h+" "+(w-r)+" "+h+" H "+r+" Q 0 "+h+" 0 "+(h-r)+" V "+r+" Q 0 0 "+r+" 0 Z";page.drawSvgPath(p,{x:x,y:top,color:C(col)})}
+  function chip(t,x,yBase,bg,fg){var w=wid(t,8,B)+14;rr(x,yBase+10,w,13,6.5,bg);tx(t,x+7,yBase,8,B,fg)}
+  function np(){page=doc.addPage([W,H]);y=H-M}
+  var it=itemsLimp();np();
+  page.drawRectangle({x:0,y:H-92,width:W,height:92,color:C("#1e3a8a")});
+  tx("Parte para el servicio de limpieza",M,H-46,22,B,"#ffffff");
+  tx("Informe de revisión · "+S.rev.fecha,M,H-66,10.5,F,"#bfdbfe");
+  y=H-92-26;
+  [["FECHA",S.rev.fecha],["HORA",S.rev.ini+" - "+S.rev.fin],["REVISOR",(S.cfg.revisor||"").trim()]].forEach(function(m,i){var x=M+[0,130,260][i];tx(m[0],x,y,8,B,"#64748b");tx(m[1],x,y-14,11.5,B)});
+  y-=44;
+  function sec(t,a,lab,bg,fg){
+    if(y-60<BOT)np();
+    rr(M,y,W-2*M,24,6,"#e0e7ff");tx(t+" ("+a.length+")",M+10,y-16,11.5,B,"#1e3a8a");y-=24+6;
+    if(!a.length){tx("Ninguno",M+10,y-12,9.5,F,"#94a3b8");y-=24;return}
+    a.forEach(function(z,i){var q=nom(z[0]),rl=wrap(q[1],380,8.5,F),nl=z[1]?wrap("Nota: "+z[1],380,8.5,F):[],rh=Math.max(26,16+(rl.length+nl.length)*10);
+      if(y-rh<BOT)np();
+      if(i%2===0)page.drawRectangle({x:M,y:y-rh,width:W-2*M,height:rh,color:C("#f8fafc")});
+      page.drawLine({start:{x:M,y:y-rh},end:{x:W-M,y:y-rh},thickness:0.4,color:C("#e2e8f0")});
+      chip(lab,M+8,y-15,bg,fg);tx(q[0],M+80,y-14,10,B);var ly=y-24;
+      rl.forEach(function(l){tx(l,M+80,ly,8.5,F,"#64748b");ly-=10});nl.forEach(function(l){tx(l,M+80,ly,8.5,F,"#92400e");ly-=10});
+      y-=rh});
+    y-=16}
+  sec("Garrafas vacías (a rellenar)",it.g,"VACÍA","#fee2e2","#991b1b");
+  sec("Vados sucios (a limpiar)",it.v,"SUCIO","#fee2e2","#991b1b");
+  if(y-70<BOT)np();
+  y-=14;tx("Revisado por",M,y,8,B,"#64748b");tx((S.cfg.revisor||"").trim(),M,y-14,11,B);
+  var pgs=doc.getPages();pgs.forEach(function(pg,i){
+    pg.drawLine({start:{x:M,y:32},end:{x:W-M,y:32},thickness:0.4,color:C("#cbd5e1")});
+    pg.drawText("Parte para limpieza · "+S.rev.fecha,{x:M,y:20,size:8,font:F,color:C("#94a3b8")});
+    var t="Página "+(i+1)+" de "+pgs.length;pg.drawText(t,{x:W-M-F.widthOfTextAtSize(t,8),y:20,size:8,font:F,color:C("#94a3b8")})});
+  return await doc.save()}
 function verCfg(b){var c=document.getElementById("cfg");c.classList.toggle("hide",!b);
   if(!b)return;
   var h="";Object.keys(S.cfg.pl).forEach(function(k){var p=S.cfg.pl[k];
