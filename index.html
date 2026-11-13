@@ -92,21 +92,25 @@ function draw(){
     '<div class="sep"></div>'+
     '<div class="f"><span>Garrafa</span>'+bt(i,"gar",1,"Llena","v",x)+bt(i,"gar",2,"Media","n",x)+bt(i,"gar",3,"Vacía","x",x)+'</div>'+
     '<div class="f"><span>Vado</span>'+bt(i,"vad",1,"Limpio","v",x)+bt(i,"vad",2,"Sucio","x",x)+'</div>'+
-    '<label style="margin-top:10px">Rodillos (toca para cambiar)</label><div class="row" style="flex-wrap:nowrap">'+rb(i,"ri","Izquierdo",x)+rb(i,"rd","Derecho",x)+'</div>'+
+    '<label style="margin-top:10px">Rodillos (toca para cambiar)</label><div class="row" style="flex-wrap:nowrap">'+rb(i,"ri","Izquierdo",x)+rb(i,"rd","Derecho",x)+'</div>'+rm(i,"ri","izquierdo",x)+rm(i,"rd","derecho",x)+
     '<label>Nota (opcional)</label><input value="'+esc(x.nota)+'" oninput="nota('+i+',this.value)"></div>';
     L.insertAdjacentHTML("beforeend",h)});
 }
 function bt(i,k,v,t,c,x){return '<button class="p'+(x[k]===v?' '+c:'')+'" onclick="est('+i+',\''+k+'\','+v+')">'+t+'</button>'}
 function rb(i,k,t,x){var s=x[k]||0;return '<button class="rod'+(s===1?' v':s===2?' x':'')+'" onclick="rod('+i+',\''+k+'\')">'+t+'<br><b>'+(s===1?'Bien':s===2?'Mal':'—')+'</b></button>'}
 function est(i,k,v){var x=S.rev.d[S.cfg.vados[i].n];x[k]=(x[k]===v)?0:v;sv();draw()}
-function rod(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=((x[k]||0)+1)%3;sv();draw()}
+function rod(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=((x[k]||0)+1)%3;if(x[k]!==2){x[k+"m"]=0;x[k+"a"]=""}sv();draw()}
+function rm(i,k,t,x){if(x[k]!==2)return '';var m=x[k+"m"]||0;
+  return '<div style="margin-top:8px;padding:10px;border-radius:12px;background:#fef2f2"><div style="font-size:14px;color:#7f1d1d;font-weight:500">Rodillo '+t+': ¿por qué está mal?</div><div class="row" style="flex-wrap:nowrap;margin-top:6px"><button class="p'+(m===1?' x':'')+'" onclick="rmot('+i+',\''+k+'\',1)">Desgaste</button><button class="p'+(m===2?' x':'')+'" onclick="rmot('+i+',\''+k+'\',2)">Roto</button></div><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Aviso SAP (solo números)" style="margin-top:6px" value="'+esc(x[k+"a"]||"")+'" oninput="rsap('+i+',\''+k+'\',this)"></div>'}
+function rmot(i,k,m){var x=S.rev.d[S.cfg.vados[i].n];x[k+"m"]=(x[k+"m"]===m)?0:m;sv();draw()}
+function rsap(i,k,el){var v=el.value.replace(/[^0-9]/g,'');if(v!==el.value)el.value=v;S.rev.d[S.cfg.vados[i].n][k+"a"]=v;sv()}
 function pend(){var r=[];S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n];if(x&&falta(x))r.push(i)});return r}
 function dlg(pn){var fl=0;pn.forEach(function(i){fl+=falta(S.rev.d[S.cfg.vados[i].n])});
   var e=document.getElementById("dlg");e.classList.remove("hide");
-  e.innerHTML='<div><b style="font-size:19px">Faltan datos</b><p style="margin:8px 0 14px;color:#475569">Quedan '+fl+' datos sin marcar en '+pn.length+' vados (dosificación, garrafa, vado o rodillos).</p><button style="width:100%;margin-bottom:8px" onclick="verPend()">Ver pendientes</button><button class="sec" style="width:100%" onclick="cerrarDlg();fin(true)">Finalizar igualmente</button></div>'}
+  e.innerHTML='<div><b style="font-size:19px">Faltan datos</b><p style="margin:8px 0 14px;color:#475569">Quedan '+fl+' datos sin marcar en '+pn.length+' vados (dosificación, garrafa, vado, rodillos o motivo).</p><button style="width:100%;margin-bottom:8px" onclick="verPend()">Ver pendientes</button><button class="sec" style="width:100%" onclick="cerrarDlg();fin(true)">Finalizar igualmente</button></div>'}
 function cerrarDlg(){var e=document.getElementById("dlg");e.classList.add("hide");e.innerHTML=""}
 function verPend(){cerrarDlg();var pn=pend();if(!pn.length)return;var c=document.getElementById("v"+pn[0]);if(!c)return;c.scrollIntoView({block:"start",behavior:"smooth"});c.classList.add("flash");setTimeout(function(){c.classList.remove("flash")},2500)}
-function falta(x){return (x.dos===null?1:0)+(x.gar?0:1)+(x.vad?0:1)+(x.ri?0:1)+(x.rd?0:1)}
+function falta(x){return (x.dos===null?1:0)+(x.gar?0:1)+(x.vad?0:1)+(x.ri?0:1)+(x.rd?0:1)+(x.ri===2&&!x.rim?1:0)+(x.rd===2&&!x.rdm?1:0)}
 var COL=[[0,"#ffef7a"],[10,"#fce36c"],[25,"#d4d16e"],[50,"#a4ba86"],[100,"#82af8d"],[250,"#539f9f"],[500,"#3c92a6"],[1000,"#3a98b1"]];
 function usaCol(v){return (pl(v).prod||"").toLowerCase().indexOf("extra")>-1}
 function colHTML(i,x,p){var s='<label>Compara la tira con la pantalla (mg/L)</label><div style="display:flex;justify-content:space-between;gap:2px;background:#f8fafc;padding:8px 4px 6px;border-radius:14px;border:1px solid #e2e8f0">';
@@ -156,8 +160,8 @@ async function hacerPdf(){
   S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),ms=[];
     if(x.dos===false)ms.push("no dosifica · "+(x.sap?"aviso SAP "+x.sap:"aviso SAP pendiente"));else if(e==="BAJA"||e==="ALTA")ms.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
     if(x.gar===3)ms.push("garrafa vacía");if(x.vad===2)ms.push("vado sucio");
-    if(x.ri===2&&x.rd===2)ms.push("rodillos izquierdo y derecho mal");else if(x.ri===2)ms.push("rodillo izquierdo mal");else if(x.rd===2)ms.push("rodillo derecho mal");
-    if(ms.length)bad.push([v,ms.join(" · "),x.nota])});
+    [["ri","izquierdo"],["rd","derecho"]].forEach(function(q){if(x[q[0]]===2)ms.push("rodillo "+q[1]+" mal · "+(x[q[0]+"m"]===1?"desgaste":x[q[0]+"m"]===2?"roto":"motivo sin indicar")+" · "+(x[q[0]+"a"]?"aviso SAP "+x[q[0]+"a"]:"aviso SAP pendiente"))});
+    if(ms.length)bad.push([v,ms.join("; "),x.nota])});
   if(bad.length){
     tx("Puntos a revisar",M,y,13,B,"#991b1b");y-=8;
     var bh=14;bad.forEach(function(b){bh+=wrap(b[0].n+": "+b[1]+(b[2]?" - "+b[2]:""),W-2*M-30,9,F).length*11+3});
