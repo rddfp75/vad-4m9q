@@ -87,6 +87,7 @@ function draw(){
     '<label>¿Dosifica producto?</label><div class="row">'+
     '<button class="'+(x.dos===true?"sel-si":"sec")+'" onclick="dos('+i+',true)">Sí</button>'+
     '<button class="'+(x.dos===false?"sel-no":"sec")+'" onclick="dos('+i+',false)">No</button></div>'+
+    (x.dos===false?'<label style="color:#b91c1c;margin-top:10px">Aviso de mantenimiento (SAP)</label><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Nº de aviso (solo números)" value="'+esc(x.sap||"")+'" oninput="sap('+i+',this)"><div class="small" style="margin-top:4px">Si aún no lo has creado, déjalo vacío: saldrá como aviso pendiente.</div>':'')+
     (usaCol(v)?colHTML(i,x,p):'<label>Concentración ('+esc(p.uni)+')</label><input class="n" type="number" inputmode="decimal" value="'+esc(x.con)+'" oninput="con('+i+',this.value)" onchange="draw()">')+
     '<div class="sep"></div>'+
     '<div class="f"><span>Garrafa</span>'+bt(i,"gar",1,"Llena","v",x)+bt(i,"gar",2,"Media","n",x)+bt(i,"gar",3,"Vacía","x",x)+'</div>'+
@@ -113,6 +114,7 @@ function colHTML(i,x,p){var s='<label>Compara la tira con la pantalla (mg/L)</la
   return s+'</div><div class="small" style="margin-top:6px">'+(x.con!==""?'Elegido: '+esc(x.con)+' '+esc(p.uni):'Brillo al máximo y sin modo nocturno')+'</div>'}
 function colSel(i,v){var x=S.rev.d[S.cfg.vados[i].n];x.con=(String(x.con)===String(v))?"":String(v);sv();draw()}
 function dos(i,b){S.rev.d[S.cfg.vados[i].n].dos=b;sv();draw()}
+function sap(i,el){var v=el.value.replace(/[^0-9]/g,'');if(v!==el.value)el.value=v;S.rev.d[S.cfg.vados[i].n].sap=v;sv()}
 function con(i,val){S.rev.d[S.cfg.vados[i].n].con=val;sv()}
 function nota(i,val){S.rev.d[S.cfg.vados[i].n].nota=val;sv()}
 function stats(){var n=S.cfg.vados.length,si=0,no=0,fu=0,pen=0,gv=0,su=0,rm=0,fl=0;S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v);if(x.gar===3)gv++;if(x.vad===2)su++;if(x.ri===2)rm++;if(x.rd===2)rm++;fl+=falta(x);if(x.dos===true)si++;if(x.dos===false)no++;if(e==="BAJA"||e==="ALTA")fu++;if(x.dos===null&&x.con==="")pen++});return {n:n,si:si,no:no,fu:fu,pen:pen,gv:gv,su:su,rm:rm,fl:fl}}
@@ -152,7 +154,7 @@ async function hacerPdf(){
   y-=50+20;
   var bad=[];
   S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),ms=[];
-    if(x.dos===false)ms.push("no dosifica");else if(e==="BAJA"||e==="ALTA")ms.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
+    if(x.dos===false)ms.push("no dosifica · "+(x.sap?"aviso SAP "+x.sap:"aviso SAP pendiente"));else if(e==="BAJA"||e==="ALTA")ms.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
     if(x.gar===3)ms.push("garrafa vacía");if(x.vad===2)ms.push("vado sucio");
     if(x.ri===2&&x.rd===2)ms.push("rodillos izquierdo y derecho mal");else if(x.ri===2)ms.push("rodillo izquierdo mal");else if(x.rd===2)ms.push("rodillo derecho mal");
     if(ms.length)bad.push([v,ms.join(" · "),x.nota])});
