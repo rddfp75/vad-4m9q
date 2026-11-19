@@ -86,7 +86,7 @@ function fotoDel(i,k){var n=S.cfg.vados[i].n;(PH[n]||[]).splice(k,1);phSave();dr
 function dsD(i,id,b){var x=S.rev.d[S.cfg.vados[i].n],z=dsx(x,id);z.d=b;sv();draw()}
 function dsG(i,id,v){var x=S.rev.d[S.cfg.vados[i].n],z=dsx(x,id);z.g=(z.g===v)?0:v;sv();draw()}
 function tg(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=x[k]?0:1;if(k==="ot"&&x.ot)x.ot=" ";if(k==="ot"&&!x.ot)x.ot="";sv();draw()}
-function otx(i,val){var x=S.rev.d[S.cfg.vados[i].n];x.ot=val===""?" ":val;sv()}
+function otx(i,val){S.rev.d[S.cfg.vados[i].n].ot=val;sv()}
 function desHTML(i,v,x){var it=des(v);if(!it.length)return '';var fa=dsFalta(v,x),id="dd"+i;
   var h='<details id="'+id+'" style="margin-top:10px"'+(OP[id]?' open':'')+' ontoggle="OP[this.id]=this.open"><summary style="font-weight:600;color:#1f4e6b;padding:6px 0">🧴 Desinfectante de manos'+(fa?' <span class="fal">faltan '+fa+'</span>':'')+'</summary>';
   it.forEach(function(q){var z=dsx(x,q.id);
@@ -94,15 +94,14 @@ function desHTML(i,v,x){var it=des(v);if(!it.length)return '';var fa=dsFalta(v,x
     '<label>¿Dosifica?</label><div class="row"><button class="'+(z.d===true?"sel-si":"sec")+'" onclick="dsD('+i+',\''+q.id+'\',true)">Sí</button><button class="'+(z.d===false?"sel-no":"sec")+'" onclick="dsD('+i+',\''+q.id+'\',false)">No</button></div>'+
     '<div class="f"><span>Garrafa</span>'+[[1,"Llena","v"],[2,"Media","n"],[3,"Vacía","x"]].map(function(b){return '<button class="p'+(z.g===b[0]?' '+b[2]:'')+'" onclick="dsG('+i+',\''+q.id+'\','+b[0]+')">'+b[1]+'</button>'}).join('')+'</div></div>'});
   return h+'</details>'}
-function incHTML(i,v,x){var id="di"+i,ph=PH[v.n]||[],c=(x.fn?1:0)+(x.ag?1:0)+(x.ar?1:0)+(x.ot?1:0);
-  function b(k,t){return '<button class="p'+(x[k]?' x':'')+'" style="margin-top:6px;display:block;width:100%;text-align:left;padding:11px 12px;font-size:15px" onclick="tg('+i+',\''+k+'\')">'+(x[k]?'✔ ':'')+t+'</button>'}
-  var h='<details id="'+id+'" style="margin-top:10px"'+(OP[id]||c||ph.length?(OP[id]===false?'':' open'):'')+' ontoggle="OP[this.id]=this.open"><summary style="font-weight:600;color:#9a3412;padding:6px 0">⚠️ Incidencias y foto'+(c||ph.length?' <span class="fal">'+(c?c+' marcada'+(c>1?'s':''):'')+(ph.length?(c?' · ':'')+ph.length+' foto'+(ph.length>1?'s':''):'')+'</span>':'')+'</summary>'+
-  b("fn","El vado no se pone en marcha")+b("ag","No dosifica agua")+b("ar","Sucio por la parte de arriba")+b("ot","Otro")+
-  (x.ot?'<input style="margin-top:6px" placeholder="Describe la incidencia" value="'+esc(x.ot.trim())+'" oninput="otx('+i+',this.value)">':'')+
+function incHTML(i,v,x){var id="di"+i,ph=PH[v.n]||[],t=(x.ot||"").trim(),c=(t?1:0)+((x.sap||"")?1:0);
+  var h='<details id="'+id+'" style="margin-top:10px"'+(OP[id]||(c||ph.length)&&OP[id]!==false?' open':'')+' ontoggle="OP[this.id]=this.open"><summary style="font-weight:600;color:#9a3412;padding:6px 0">⚠️ Incidencias y foto'+(t||ph.length||x.sap?' <span class="fal">'+(t?'incidencia':'')+(x.sap?(t?' · ':'')+'SAP '+esc(x.sap):'')+(ph.length?((t||x.sap)?' · ':'')+ph.length+' foto'+(ph.length>1?'s':''):'')+'</span>':'')+'</summary>'+
+  '<label>Incidencia</label><textarea rows="3" placeholder="Escribe la incidencia" oninput="otx('+i+',this.value)">'+esc(x.ot||"")+'</textarea>'+
+  '<label>Nº de aviso SAP (solo para registro en el informe)</label><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Nº de aviso (solo números)" value="'+esc(x.sap||"")+'" oninput="sap('+i+',this)">'+
   '<div class="row" style="margin-top:8px">'+ph.map(function(d,k){return '<div style="position:relative"><img src="'+d+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px"><button onclick="fotoDel('+i+','+k+')" style="position:absolute;top:2px;right:2px;padding:0;width:24px;height:24px;border-radius:12px;background:#b91c1c">✕</button></div>'}).join('')+
   (ph.length<2?'<label class="p" style="flex:none;display:flex;align-items:center;justify-content:center;width:84px;height:84px;margin:0;font-size:13px;padding:4px;border-radius:10px">📷 Añadir foto<input type="file" accept="image/*" hidden onchange="foto('+i+',this)"></label>':'')+'</div></details>';
   return h}
-function incTxt(x){var a=[];if(x.fn)a.push("no se pone en marcha");if(x.ag)a.push("no dosifica agua");if(x.ar)a.push("sucio por la parte de arriba");if(x.ot&&x.ot.trim())a.push(x.ot.trim());return a}
+function incTxt(x){var a=[];if(x.ot&&x.ot.trim())a.push(x.ot.trim());if(x.sap)a.push("Aviso SAP "+x.sap);return a}
 function hora(){var d=new Date();return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
 function hoy(){var d=new Date();return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()}
 function pl(v){return S.cfg.pl[v.k||v.p]||{prod:"",uni:"",min:null,max:null}}
@@ -140,27 +139,27 @@ function est(i,k,v){var x=S.rev.d[S.cfg.vados[i].n];x[k]=(x[k]===v)?0:v;sv();dra
 function rod(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=((x[k]||0)+1)%3;if(x[k]!==2){x[k+"m"]=0}sv();draw()}
 function rm(i,k,t,x){if(x[k]!==2)return '';var m=x[k+"m"]||0;
   return '<div style="margin-top:8px;padding:10px;border-radius:12px;background:#fef2f2"><div style="font-size:14px;color:#7f1d1d;font-weight:500">Rodillo '+t+': ¿por qué está mal?</div><div class="row" style="flex-wrap:nowrap;margin-top:6px"><button class="p'+(m===1?' x':'')+'" onclick="rmot('+i+',\''+k+'\',1)">Desgaste</button><button class="p'+(m===2?' x':'')+'" onclick="rmot('+i+',\''+k+'\',2)">No gira</button></div></div>'}
-function sapBlock(i,x){var n=[];var vv=S.cfg.vados[i];if(x.dos===false)n.push("no dosifica");if(x.fn)n.push("no se pone en marcha");if(x.ag)n.push("no dosifica agua");des(vv).forEach(function(q){if(dsx(x,q.id).d===false)n.push("no dosifica "+lcn(q))});var e=estado(S.cfg.vados[i]);if(e==="BAJA")n.push("dosifica por debajo de lo recomendado");if(e==="ALTA")n.push("dosifica por encima de lo recomendado");if(x.ri===2)n.push("rodillo izquierdo");if(x.rd===2)n.push("rodillo derecho");if(!n.length)return '';
-  return '<div style="margin-top:10px;padding:10px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74"><div style="font-size:15px;color:#9a3412;font-weight:500">Aviso de mantenimiento (SAP)</div><div class="small" style="margin:2px 0 6px">Para: '+n.join(" · ")+'</div><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Nº de aviso (solo números)" value="'+esc(x.sap||"")+'" oninput="sap('+i+',this)"><div class="small" style="margin-top:4px">Si aún no lo has creado, déjalo vacío: saldrá como aviso pendiente.</div><button class="p" style="margin-top:8px" onclick="mailVado('+i+')">✉️ Enviar aviso por correo</button></div>'}
+function sapBlock(i,x){var n=[];var vv=S.cfg.vados[i];if(x.dos===false&&x.gar!==3)n.push("no dosifica");if(x.fn)n.push("no se pone en marcha");if(x.ag)n.push("no dosifica agua");des(vv).forEach(function(q){if(dsx(x,q.id).d===false&&dsx(x,q.id).g!==3)n.push("no dosifica "+lcn(q))});var e=estado(S.cfg.vados[i]);if(e==="BAJA")n.push("dosifica por debajo de lo recomendado");if(e==="ALTA")n.push("dosifica por encima de lo recomendado");if(x.ri===2)n.push("rodillo izquierdo");if(x.rd===2)n.push("rodillo derecho");if(!n.length)return '';
+  return '<div style="margin-top:10px;padding:10px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74"><div style="font-size:15px;color:#9a3412;font-weight:500">Aviso de mantenimiento (SAP)</div><div class="small" style="margin:2px 0 6px">Para: '+n.join(" · ")+'</div><div class="small" style="margin-top:4px">Apunta el nº de aviso SAP en "Incidencias y foto". Si lo dejas vacío, saldrá como aviso pendiente en el informe.</div></div>'}
 function incVado(i){var v=S.cfg.vados[i],x=S.rev.d[v.n],p=pl(v),e=estado(v),L=[];
   var u=p.uni,pr=p.prod||"el producto";
-  if(x.dos===false)L.push({t:"El vado no dosifica producto.",r:"que se revise y se restablezca la dosificación lo antes posible",a:"No dosifica"});
-  else if(e==="BAJA")L.push({t:"La concentración de "+pr+" medida es de "+String(x.con).replace(".",",")+" "+u+", por debajo del mínimo establecido ("+String(rango(v)[0]).replace(".",",")+" "+u+").",r:"que se revise y se ajuste la dosificación para que vuelva a situarse dentro del rango",a:"Dosificación por debajo del rango"});
-  else if(e==="ALTA")L.push({t:"La concentración de "+pr+" medida es de "+String(x.con).replace(".",",")+" "+u+", por encima del máximo establecido ("+String(rango(v)[1]).replace(".",",")+" "+u+").",r:"que se revise y se ajuste la dosificación para que vuelva a situarse dentro del rango",a:"Dosificación por encima del rango"});
+  if(x.dos===false&&x.gar!==3)L.push({t:"El vado no dosifica producto.",r:"que se revise y se restablezca la dosificación lo antes posible",a:"No dosifica"});
+  else if(x.dos!==false&&e==="BAJA")L.push({t:"La concentración de "+pr+" medida es de "+String(x.con).replace(".",",")+" "+u+", por debajo del mínimo establecido ("+String(rango(v)[0]).replace(".",",")+" "+u+").",r:"que se revise y se ajuste la dosificación para que vuelva a situarse dentro del rango",a:"Dosificación por debajo del rango"});
+  else if(x.dos!==false&&e==="ALTA")L.push({t:"La concentración de "+pr+" medida es de "+String(x.con).replace(".",",")+" "+u+", por encima del máximo establecido ("+String(rango(v)[1]).replace(".",",")+" "+u+").",r:"que se revise y se ajuste la dosificación para que vuelva a situarse dentro del rango",a:"Dosificación por encima del rango"});
   [["ri","izquierdo"],["rd","derecho"]].forEach(function(q){if(x[q[0]]!==2)return;var m=x[q[0]+"m"];
     if(m===2)L.push({t:"El rodillo "+q[1]+" no gira, por lo que no cumple su función.",r:"que se revise y se repare o sustituya",a:"Rodillo "+q[1]+" no gira"});
     else if(m===1)L.push({t:"El rodillo "+q[1]+" presenta un desgaste que le impide realizar su función con normalidad.",r:"su reposición",a:"Rodillo "+q[1]+" desgastado",rep:1});
     else L.push({t:"El rodillo "+q[1]+" está en mal estado.",r:"que se revise y se repare o sustituya",a:"Rodillo "+q[1]+" en mal estado"})});
   if(x.fn)L.push({t:"El vado no se pone en marcha.",r:"que se revise y se repare lo antes posible",a:"No se pone en marcha"});
   if(x.ag)L.push({t:"El vado no dosifica agua.",r:"que se revise y se restablezca la dosificación de agua lo antes posible",a:"No dosifica agua"});
-  des(v).forEach(function(q){if(dsx(x,q.id).d===false)L.push({t:"El dispensador de desinfectante de manos asociado al vado ("+q.nm+") no dosifica.",r:"que se revise y se restablezca su dosificación",a:"Desinfectante de manos no dosifica"})});
+  des(v).forEach(function(q){if(dsx(x,q.id).d===false&&dsx(x,q.id).g!==3)L.push({t:"El dispensador de desinfectante de manos asociado al vado ("+q.nm+") no dosifica.",r:"que se revise y se restablezca su dosificación",a:"Desinfectante de manos no dosifica"})});
   return L}
 function mailVado(i){var v=S.cfg.vados[i],x=S.rev.d[v.n],L=incVado(i);if(!L.length)return;
   var pl_=v.p?" ("+v.p+")":"",nom=v.n+pl_,f=S.rev.fecha,sol;
   var b="Buenos días:\n\nEn la revisión de vados sanitarios del "+f+" hemos detectado ";
   if(L.length===1){b+="una incidencia en el vado "+nom+":\n\n"+L[0].t+"\n\n"+(L[0].rep?"Solicitamos "+L[0].r:"Solicitamos "+L[0].r)+".";}
   else{b+="varias incidencias en el vado "+nom+":\n\n"+L.map(function(z){return "- "+z.t}).join("\n")+"\n\nSolicitamos que se revisen y se resuelvan."}
-  b+="\n\nAviso SAP: "+(x.sap?x.sap:"pendiente de crear")+"\n\nGracias.\n"+(S.cfg.revisor||"").trim();
+  b+="\n\nGracias.\n"+(S.cfg.revisor||"").trim();
   var sub="Vado sanitario · "+v.n.split(" · ").slice(-1)[0]+pl_+" · "+(L.length===1?L[0].a:"Varias incidencias")+" · "+f;
   location.href="mailto:"+(S.cfg.mail||"")+"?subject="+encodeURIComponent(sub)+"&body="+encodeURIComponent(b)}
 function rmot(i,k,m){var x=S.rev.d[S.cfg.vados[i].n];x[k+"m"]=(x[k+"m"]===m)?0:m;sv();draw()}
@@ -218,12 +217,12 @@ async function hacerPdf(){
   y-=50+20;
   var bad=[];
   S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),ms=[];
-    var mant=[];if(x.dos===false)mant.push("no dosifica");else if(e==="BAJA"||e==="ALTA")mant.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
+    var mant=[];if(x.dos===false){if(x.gar!==3)mant.push("no dosifica")}else if(e==="BAJA"||e==="ALTA")mant.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
     if(x.fn)mant.push("no se pone en marcha");if(x.ag)mant.push("no dosifica agua");
-    des(v).forEach(function(q){var z=dsx(x,q.id);if(z.d===false)mant.push("no dosifica "+lcn(q))});
+    des(v).forEach(function(q){var z=dsx(x,q.id);if(z.d===false&&z.g!==3)mant.push("no dosifica "+lcn(q))});
     if(x.gar===3)ms.push("garrafa vacía");if(x.vad===2)ms.push("vado sucio");
     des(v).forEach(function(q){if(dsx(x,q.id).g===3)ms.push("garrafa vacía de "+lcn(q))});
-    if(x.ar)ms.push("sucio por la parte de arriba");if(x.ot&&x.ot.trim())ms.push("incidencia: "+x.ot.trim());
+    if(x.ot&&x.ot.trim())ms.push("incidencia: "+x.ot.trim()+(!mant.length&&x.sap?" · aviso SAP "+x.sap:""));
     [["ri","izquierdo"],["rd","derecho"]].forEach(function(q){if(x[q[0]]===2)mant.push("rodillo "+q[1]+" mal ("+(x[q[0]+"m"]===1?"desgaste":x[q[0]+"m"]===2?"no gira":"motivo sin indicar")+")")});
     if(mant.length)ms.push(mant.join(" · ")+" · "+(x.sap?"aviso SAP "+x.sap:"aviso SAP pendiente"));
     if(ms.length)bad.push([v,ms.join("; "),x.nota])});
@@ -294,7 +293,7 @@ async function guardarPdf(){var m=document.getElementById("pdfMsg");
     var u=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);
     m.textContent="PDF descargado. Adjúntalo al correo desde Descargas."}
   catch(e){m.textContent="No se pudo crear el PDF."}}
-function itemsLimp(){var g=[],v=[];S.cfg.vados.forEach(function(d){var x=S.rev.d[d.n]||{};if(x.gar===3)g.push([d,x.nota]);des(d).forEach(function(q){if(dsx(x,q.id).g===3)g.push([d,"Desinfectante de manos: "+q.nm+(x.nota?" - "+x.nota:"")])});if(x.vad===2)v.push([d,x.nota]);else if(x.ar)v.push([d,"Sucio por la parte de arriba"+(x.nota?" - "+x.nota:"")])});return {g:g,v:v}}
+function itemsLimp(){var g=[],v=[];S.cfg.vados.forEach(function(d){var x=S.rev.d[d.n]||{};if(x.gar===3)g.push([d,x.nota]);des(d).forEach(function(q){if(dsx(x,q.id).g===3)g.push([d,"Desinfectante de manos: "+q.nm+(x.nota?" - "+x.nota:"")])});if(x.vad===2)v.push([d,x.nota]);else if(false)v.push([d,"Sucio por la parte de arriba"+(x.nota?" - "+x.nota:"")])});return {g:g,v:v}}
 function LM(){var e=document.getElementById("limp");if(!e)return;if(!S.rev||!S.rev.fin){e.innerHTML="";return}
   var it=itemsLimp(),n=it.g.length+it.v.length;
   if(!n){e.innerHTML='<b>Parte para limpieza</b><div class="small" style="margin:6px 0">Sin avisos para limpieza.</div>';return}
