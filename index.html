@@ -25,7 +25,7 @@ label{font-size:14px;color:#475569;display:block;margin:6px 0 2px}
 .small{font-size:14px;color:#64748b}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:10px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -2px 6px #0002;display:flex;gap:8px}
 .bar button{flex:1}
-.hide{display:none}
+.hide{display:none!important}
 .f{display:flex;align-items:center;gap:6px;margin-top:8px}.f>span{width:62px;font-size:13px;color:#475569;flex:none}
 .p{flex:1;padding:9px 2px;border-radius:10px;background:#e5e7eb;color:#111;text-align:center;font-size:13px}
 .p.v{background:#15803d;color:#fff}.p.n{background:#e07b00;color:#fff}.p.x{background:#b91c1c;color:#fff}
@@ -38,6 +38,7 @@ label{font-size:14px;color:#475569;display:block;margin:6px 0 2px}
 .sep{height:1px;background:#e2e8f0;margin:12px 0 4px}
 </style><script src="pdf-lib.min.js"></script></head><body>
 <h1>Vados sanitarios</h1>
+<div class="row" style="margin-bottom:10px"><button id="t0" style="flex:1" onclick="tab(0)">Vados</button><button id="t1" class="sec" style="flex:1" onclick="tab(1)">Cuchillos y cajas</button></div>
 <div id="cfg" class="card hide">
   <b>Configuración</b>
   <div id="cfgPl"></div>
@@ -57,18 +58,55 @@ label{font-size:14px;color:#475569;display:block;margin:6px 0 2px}
   <div id="res" class="card hide"><b>Revisión terminada</b><div id="resTxt" class="small" style="margin:6px 0"></div><div id="pend" style="margin-bottom:8px"></div><button onclick="guardarPdf()">Guardar PDF</button><div id="pdfMsg" class="small" style="margin-top:8px"></div>
   <div id="limp" style="margin-top:14px"></div></div>
 </div>
+<div id="cucw" class="hide"><div id="cuc"></div><div id="cMsg" class="small" style="margin:6px 0"></div></div>
 <div id="dlg" class="dlg hide"></div>
-<div class="bar"><button class="sec" onclick="nueva()">Nueva</button><button onclick="fin()">Fin de revisión</button></div>
+<div class="bar hide" id="bar2"><button class="sec" onclick="cNueva(this)">Nueva</button><button onclick="cPdf()">Crear PDF</button></div>
+<div class="bar" id="bar1"><button class="sec" onclick="nueva()">Nueva</button><button onclick="fin()">Fin de revisión</button></div>
 <script>
-var DEF=[{"n": "SIN MATRÍCULA · Matadero · Cuadras · Acceso a cuadras", "p": "CS1", "b": ""}, {"n": "LAV-507 · Matadero · Zona sucia · Taller mantenimiento", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Zona sucia · Salida taller subcontrata", "p": "CS1", "b": "Bomba"}, {"n": "LAV-505 · Matadero · Zona sucia · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "LAV-508 · Matadero · Zona sucia · Entrada a producción", "p": "CS1", "b": "Venturi"}, {"n": "DDM-500 · Matadero · Zona sucia · Entrada a producción-desinfectador manos", "p": "CS1", "b": ""}, {"n": "LAV-506 · Matadero · Zona limpia · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "SIN MATRÍCULA · Matadero · Zona limpia · Entrada a producción", "p": "CS1", "b": "Venturi"}, {"n": "DDM-501 · Matadero · Zona limpia · Entrada a producción-desinfectador manos", "p": "CS1", "b": ""}, {"n": "SIN MATRÍCULA · Matadero · Zona limpia · Salida laboratorio", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Sala cabezas · Acceso producción (sección cabezas)", "p": "CS1", "b": "Venturi"}, {"n": "LAV-502 · Matadero · Sala cabezas · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "DDM-503 · Matadero · Sala cabezas · Desinfectador manos", "p": "CS1", "b": ""}, {"n": "SIN MATRÍCULA · Matadero · Tripería · Acceso producción", "p": "CS1", "b": "Venturi"}, {"n": "LAV-500 · Matadero · Tripería · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "DDM-502 · Matadero · Tripería · Desinfectador manos", "p": "CS1", "b": ""}, {"n": "LAV-509 · Matadero · Empaquetado matadero · Acceso producción", "p": "CS1", "b": "Venturi"}, {"n": "LVB-125 · Pasillo visitas · Lado matadero · Entrada matadero", "p": "CS1", "b": "Venturi"}, {"n": "LVB-125 · Pasillo visitas · Lado matadero · Salida matadero", "p": "CS1", "b": "Venturi"}, {"n": "LVB-126 · Pasillo visitas · Lado despiece · Entrada despiece", "p": "CS1", "b": "Venturi"}, {"n": "LVB-126 · Pasillo visitas · Lado despiece · Salida despiece", "p": "CS1", "b": "Venturi"}, {"n": "LVB-130 · Despiece · Entrada a producción · Lado derecho", "p": "CS1", "b": "Venturi"}, {"n": "LVB-129 · Despiece · Entrada a producción · Lado izquierdo", "p": "CS1", "b": "Venturi"}, {"n": "LAV-103 · Despiece · Salida de producción · Lado derecho", "p": "CS1", "b": "Bomba"}, {"n": "LAV-102 · Despiece · Salida de producción · Lado izquierdo", "p": "CS1", "b": "Bomba"}, {"n": "LAV-105 · Despiece · Sala dacor · Acceso cuarto de afilado", "p": "CS1", "b": ""}, {"n": "LAV-201 · Adobos · Entrada a producción · Acceso a producción/cafetería", "p": "CS1", "b": "Venturi"}, {"n": "LAV-200 · Fileteado exportación · Entrada a producción · Acceso a producción", "p": "CS1", "b": "Bomba"}, {"n":"Profilgate 1 · Hacia zona limpia","p":"CS1","k":"CS1P","b":"Bomba"},{"n":"Profilgate 2 · Hacia zona sucia","p":"CS1","k":"CS1P","b":"Bomba"},{"n": "LAV600 · Expediciones · Expediciones · Entrada/salida expediciones", "p": "CS3", "b": ""}, {"n": "LAV601 · Envasado · Cámara materia prima · Entrada/salida producción (vestuarios)", "p": "CS3", "b": ""}, {"n": "LAV602 · Envasado · Cámara materia prima · Entrada/salida producción (oficina)", "p": "CS3", "b": ""}];
+var DEF=[{"n": "SIN MATRÍCULA · Matadero · Cuadras · Acceso a cuadras", "p": "CS1", "b": ""}, {"n": "LAV-507 · Matadero · Zona sucia · Taller mantenimiento", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Zona sucia · Salida taller subcontrata", "p": "CS1", "b": "Bomba"}, {"n": "LAV-505 · Matadero · Zona sucia · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "LAV-508 · Matadero · Zona sucia · Entrada a producción", "p": "CS1", "b": "Venturi"}, {"n": "LAV-506 · Matadero · Zona limpia · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "SIN MATRÍCULA · Matadero · Zona limpia · Entrada a producción", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Zona limpia · Salida laboratorio", "p": "CS1", "b": "Venturi"}, {"n": "SIN MATRÍCULA · Matadero · Sala cabezas · Acceso producción (sección cabezas)", "p": "CS1", "b": "Venturi"}, {"n": "LAV-502 · Matadero · Sala cabezas · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "SIN MATRÍCULA · Matadero · Tripería · Acceso producción", "p": "CS1", "b": "Venturi"}, {"n": "LAV-500 · Matadero · Tripería · Salida de producción", "p": "CS1", "b": "Bomba"}, {"n": "LAV-509 · Matadero · Empaquetado matadero · Acceso producción", "p": "CS1", "b": "Venturi"}, {"n": "LVB-125 · Pasillo visitas · Lado matadero · Entrada matadero", "p": "CS1", "b": "Venturi"}, {"n": "LVB-125 · Pasillo visitas · Lado matadero · Salida matadero", "p": "CS1", "b": "Venturi"}, {"n": "LVB-126 · Pasillo visitas · Lado despiece · Entrada despiece", "p": "CS1", "b": "Venturi"}, {"n": "LVB-126 · Pasillo visitas · Lado despiece · Salida despiece", "p": "CS1", "b": "Venturi"}, {"n": "LVB-130 · Despiece · Entrada a producción · Lado derecho", "p": "CS1", "b": "Venturi"}, {"n": "LVB-129 · Despiece · Entrada a producción · Lado izquierdo", "p": "CS1", "b": "Venturi"}, {"n": "LAV-103 · Despiece · Salida de producción · Lado derecho", "p": "CS1", "b": "Bomba"}, {"n": "LAV-102 · Despiece · Salida de producción · Lado izquierdo", "p": "CS1", "b": "Bomba"}, {"n": "LAV-201 · Adobos · Entrada a producción · Acceso a producción/cafetería", "p": "CS1", "b": "Venturi"}, {"n": "LAV-200 · Fileteado exportación · Entrada a producción · Acceso a producción", "p": "CS1", "b": "Bomba"}, {"n": "Profilgate 1 · Hacia zona limpia", "p": "CS1", "k": "CS1P", "b": "Bomba"}, {"n": "Profilgate 2 · Hacia zona sucia", "p": "CS1", "k": "CS1P", "b": "Bomba"}, {"n": "LAV600 · Expediciones · Expediciones · Entrada/salida expediciones", "p": "CS3", "b": ""}, {"n": "LAV601 · Envasado · Cámara materia prima · Entrada/salida producción (vestuarios)", "p": "CS3", "b": ""}, {"n": "LAV602 · Envasado · Cámara materia prima · Entrada/salida producción (oficina)", "p": "CS3", "b": ""}];
 var PL0={CS1:{prod:"Divosan Extra",uni:"ppm QUAC",min:50,max:100},CS1P:{prod:"Divosan 2010",uni:"% p/p",min:0.5,max:null},CS3:{prod:"Divosan 2010",uni:"% p/p",min:0.5,max:null}};
 var S={cfg:{pl:JSON.parse(JSON.stringify(PL0)),vados:DEF.map(function(v){return {n:v.n,p:v.p,k:v.k,b:v.b,min:null,max:null}})},rev:null};
-function ld(){try{var c=localStorage.getItem("vados_cfg3");if(c)S.cfg=JSON.parse(c);var r=localStorage.getItem("vados_rev3");if(r)S.rev=JSON.parse(r);var q=S.cfg.pl&&S.cfg.pl.CS1;if(q&&((q.min==null&&q.max==null)||(q.min===25&&q.max===250))){q.min=50;q.max=100}}catch(e){}}
+function ld(){try{var c=localStorage.getItem("vados_cfg3");if(c)S.cfg=JSON.parse(c);var r=localStorage.getItem("vados_rev3");if(r)S.rev=JSON.parse(r);if(S.cfg.vados)S.cfg.vados=S.cfg.vados.filter(function(v){return !/^(LAV-105|DDM-)/.test(v.n)});var q=S.cfg.pl&&S.cfg.pl.CS1;if(q&&((q.min==null&&q.max==null)||(q.min===25&&q.max===250))){q.min=50;q.max=100}}catch(e){}}
 function sv(){try{localStorage.setItem("vados_cfg3",JSON.stringify(S.cfg));localStorage.setItem("vados_rev3",JSON.stringify(S.rev))}catch(e){}}
+var J={id:"jabon",nm:"Jabón"},A={id:"alcohol",nm:"Alcohol"};
+function DD(n){return {id:"DDM-"+n,nm:"DDM-"+n+" · Alcohol"}}
+var DES={"LAV-507 ·":[J,A],"LAV-508 ·":[DD(500)],"SIN MATRÍCULA · Matadero · Zona limpia · Entrada a producción":[DD(501)],"SIN MATRÍCULA · Matadero · Sala cabezas · Acceso producción":[DD(503)],"SIN MATRÍCULA · Matadero · Tripería · Acceso producción":[DD(502)],"LAV-509 ·":[J,A],"LVB-125 · Pasillo visitas · Lado matadero · Entrada":[J,A],"LVB-126 · Pasillo visitas · Lado despiece · Entrada":[J,A],"LVB-130 ·":[DD(101),DD(100)],"LVB-129 ·":[DD(103),DD(102)],"LAV-201 ·":[J,A],"LAV-200 ·":[DD(200)],"LAV600 ·":[{id:"alcohol",nm:"Alcohol (integrado)"}],"LAV601 ·":[{id:"alcohol",nm:"Alcohol (integrado)"}],"LAV602 ·":[{id:"alcohol",nm:"Alcohol (integrado)"}]};
+function lcn(q){return q.nm.indexOf("DDM")===0?q.nm:q.nm.toLowerCase()}
+function des(v){for(var k in DES){if(v.n.indexOf(k)===0)return DES[k]}return []}
+var OP={},PH={};
+function dsx(x,id){x.ds=x.ds||{};return x.ds[id]||(x.ds[id]={d:null,g:0})}
+function incOn(x){return !!(x.fn||x.ag||x.ar||x.ot)}
+function dsFalta(v,x){var f=0;des(v).forEach(function(q){var z=dsx(x,q.id);if(z.d===null)f++;if(!z.g)f++});return f}
+function idb(){return new Promise(function(res){try{var r=indexedDB.open("vados_fotos",1);r.onupgradeneeded=function(){r.result.createObjectStore("f")};r.onsuccess=function(){res(r.result)};r.onerror=function(){res(null)}}catch(e){res(null)}})}
+function phSave(){PH.__rev=S.rev?S.rev.fecha+" "+S.rev.ini:"";idb().then(function(db){if(!db)return;try{db.transaction("f","readwrite").objectStore("f").put(PH,"ph")}catch(e){}})}
+function phLoad(cb){idb().then(function(db){if(!db){cb();return}try{var q=db.transaction("f").objectStore("f").get("ph");q.onsuccess=function(){var r=q.result;if(r&&S.rev&&r.__rev===S.rev.fecha+" "+S.rev.ini)PH=r;cb()};q.onerror=function(){cb()}}catch(e){cb()}})}
+function foto(i,el){var f=el.files&&el.files[0];if(!f)return;var n=S.cfg.vados[i].n;PH[n]=PH[n]||[];if(PH[n].length>=2){el.value="";return}
+  var u=URL.createObjectURL(f),im=new Image();im.onload=function(){var m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);PH[n].push(c.toDataURL("image/jpeg",0.65));URL.revokeObjectURL(u);phSave();draw()};im.onerror=function(){URL.revokeObjectURL(u)};im.src=u;el.value=""}
+function fotoDel(i,k){var n=S.cfg.vados[i].n;(PH[n]||[]).splice(k,1);phSave();draw()}
+function dsD(i,id,b){var x=S.rev.d[S.cfg.vados[i].n],z=dsx(x,id);z.d=b;sv();draw()}
+function dsG(i,id,v){var x=S.rev.d[S.cfg.vados[i].n],z=dsx(x,id);z.g=(z.g===v)?0:v;sv();draw()}
+function tg(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=x[k]?0:1;if(k==="ot"&&x.ot)x.ot=" ";if(k==="ot"&&!x.ot)x.ot="";sv();draw()}
+function otx(i,val){var x=S.rev.d[S.cfg.vados[i].n];x.ot=val===""?" ":val;sv()}
+function desHTML(i,v,x){var it=des(v);if(!it.length)return '';var fa=dsFalta(v,x),id="dd"+i;
+  var h='<details id="'+id+'" style="margin-top:10px"'+(OP[id]?' open':'')+' ontoggle="OP[this.id]=this.open"><summary style="font-weight:600;color:#1f4e6b;padding:6px 0">🧴 Desinfectante de manos'+(fa?' <span class="fal">faltan '+fa+'</span>':'')+'</summary>';
+  it.forEach(function(q){var z=dsx(x,q.id);
+    h+='<div style="margin-top:8px;padding:10px;border-radius:12px;background:#f1f5f9"><div style="font-weight:600;font-size:15px">'+esc(q.nm)+'</div>'+
+    '<label>¿Dosifica?</label><div class="row"><button class="'+(z.d===true?"sel-si":"sec")+'" onclick="dsD('+i+',\''+q.id+'\',true)">Sí</button><button class="'+(z.d===false?"sel-no":"sec")+'" onclick="dsD('+i+',\''+q.id+'\',false)">No</button></div>'+
+    '<div class="f"><span>Garrafa</span>'+[[1,"Llena","v"],[2,"Media","n"],[3,"Vacía","x"]].map(function(b){return '<button class="p'+(z.g===b[0]?' '+b[2]:'')+'" onclick="dsG('+i+',\''+q.id+'\','+b[0]+')">'+b[1]+'</button>'}).join('')+'</div></div>'});
+  return h+'</details>'}
+function incHTML(i,v,x){var id="di"+i,ph=PH[v.n]||[],c=(x.fn?1:0)+(x.ag?1:0)+(x.ar?1:0)+(x.ot?1:0);
+  function b(k,t){return '<button class="p'+(x[k]?' x':'')+'" style="margin-top:6px;display:block;width:100%;text-align:left;padding:11px 12px;font-size:15px" onclick="tg('+i+',\''+k+'\')">'+(x[k]?'✔ ':'')+t+'</button>'}
+  var h='<details id="'+id+'" style="margin-top:10px"'+(OP[id]||c||ph.length?(OP[id]===false?'':' open'):'')+' ontoggle="OP[this.id]=this.open"><summary style="font-weight:600;color:#9a3412;padding:6px 0">⚠️ Incidencias y foto'+(c||ph.length?' <span class="fal">'+(c?c+' marcada'+(c>1?'s':''):'')+(ph.length?(c?' · ':'')+ph.length+' foto'+(ph.length>1?'s':''):'')+'</span>':'')+'</summary>'+
+  b("fn","El vado no se pone en marcha")+b("ag","No dosifica agua")+b("ar","Sucio por la parte de arriba")+b("ot","Otro")+
+  (x.ot?'<input style="margin-top:6px" placeholder="Describe la incidencia" value="'+esc(x.ot.trim())+'" oninput="otx('+i+',this.value)">':'')+
+  '<div class="row" style="margin-top:8px">'+ph.map(function(d,k){return '<div style="position:relative"><img src="'+d+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px"><button onclick="fotoDel('+i+','+k+')" style="position:absolute;top:2px;right:2px;padding:0;width:24px;height:24px;border-radius:12px;background:#b91c1c">✕</button></div>'}).join('')+
+  (ph.length<2?'<label class="p" style="flex:none;display:flex;align-items:center;justify-content:center;width:84px;height:84px;margin:0;font-size:13px;padding:4px;border-radius:10px">📷 Añadir foto<input type="file" accept="image/*" hidden onchange="foto('+i+',this)"></label>':'')+'</div></details>';
+  return h}
+function incTxt(x){var a=[];if(x.fn)a.push("no se pone en marcha");if(x.ag)a.push("no dosifica agua");if(x.ar)a.push("sucio por la parte de arriba");if(x.ot&&x.ot.trim())a.push(x.ot.trim());return a}
 function hora(){var d=new Date();return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}
 function hoy(){var d=new Date();return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear()}
 function pl(v){return S.cfg.pl[v.k||v.p]||{prod:"",uni:"",min:null,max:null}}
-function nueva(){S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};S.cfg.vados.forEach(function(v){S.rev.d[v.n]={dos:null,con:"",nota:"",gar:0,vad:0,ri:0,rd:0}});sv();draw();LM();document.getElementById("res").classList.add("hide")}
+function nueva(){S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};S.cfg.vados.forEach(function(v){S.rev.d[v.n]={dos:null,con:"",nota:"",gar:0,vad:0,ri:0,rd:0}});PH={};phSave();sv();draw();LM();document.getElementById("res").classList.add("hide")}
 function rango(v){var p=pl(v);return [v.min!=null?v.min:p.min,v.max!=null?v.max:p.max]}
 function estado(v){var x=S.rev.d[v.n],r=rango(v);if(x.con===""||x.con==null)return null;var c=parseFloat(String(x.con).replace(",","."));if(isNaN(c))return null;if(r[0]==null&&r[1]==null)return "sin rango";if(r[0]!=null&&c<r[0])return "BAJA";if(r[1]!=null&&c>r[1])return "ALTA";return "OK"}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -82,7 +120,7 @@ function draw(){
     if(i===0||(S.cfg.vados[i-1].k||S.cfg.vados[i-1].p)!==(v.k||v.p))L.insertAdjacentHTML("beforeend",'<h1>'+esc(v.p)+' · '+esc(p.prod)+'</h1>');
     var cl=e==="OK"?"ok":(e==="BAJA"||e==="ALTA")?"mal":"nd";
     var rt=(r[0]!=null||r[1]!=null)?("Correcto: "+(r[0]!=null?r[0]:"–")+" a "+(r[1]!=null?r[1]:"–")+" "+p.uni):"Rango sin definir";
-    var fa=falta(x);
+    var fa=falta(x,v);
     var h='<div class="card" id="v'+i+'"><b>'+(i+1)+". "+esc(v.n)+'</b> <span class="badge '+cl+'">'+(e||"pendiente")+'</span>'+(fa?'<span class="fal">faltan '+fa+'</span>':'')+
     '<div class="small">'+(v.b?'Dosificación: '+esc(v.b)+' · ':'')+esc(rt)+'</div>'+
     '<label>¿Dosifica producto?</label><div class="row">'+
@@ -92,7 +130,7 @@ function draw(){
     '<div class="sep"></div>'+
     '<div class="f"><span>Garrafa</span>'+bt(i,"gar",1,"Llena","v",x)+bt(i,"gar",2,"Media","n",x)+bt(i,"gar",3,"Vacía","x",x)+'</div>'+
     '<div class="f"><span>Vado</span>'+bt(i,"vad",1,"Limpio","v",x)+bt(i,"vad",2,"Sucio","x",x)+'</div>'+
-    '<label style="margin-top:10px">Rodillos (toca para cambiar)</label><div class="row" style="flex-wrap:nowrap">'+rb(i,"ri","Izquierdo",x)+rb(i,"rd","Derecho",x)+'</div>'+rm(i,"ri","izquierdo",x)+rm(i,"rd","derecho",x)+sapBlock(i,x)+
+    '<label style="margin-top:10px">Rodillos (toca para cambiar)</label><div class="row" style="flex-wrap:nowrap">'+rb(i,"ri","Izquierdo",x)+rb(i,"rd","Derecho",x)+'</div>'+rm(i,"ri","izquierdo",x)+rm(i,"rd","derecho",x)+desHTML(i,v,x)+incHTML(i,v,x)+sapBlock(i,x)+
     '<label>Nota (opcional)</label><input value="'+esc(x.nota)+'" oninput="nota('+i+',this.value)"></div>';
     L.insertAdjacentHTML("beforeend",h)});
 }
@@ -102,7 +140,7 @@ function est(i,k,v){var x=S.rev.d[S.cfg.vados[i].n];x[k]=(x[k]===v)?0:v;sv();dra
 function rod(i,k){var x=S.rev.d[S.cfg.vados[i].n];x[k]=((x[k]||0)+1)%3;if(x[k]!==2){x[k+"m"]=0}sv();draw()}
 function rm(i,k,t,x){if(x[k]!==2)return '';var m=x[k+"m"]||0;
   return '<div style="margin-top:8px;padding:10px;border-radius:12px;background:#fef2f2"><div style="font-size:14px;color:#7f1d1d;font-weight:500">Rodillo '+t+': ¿por qué está mal?</div><div class="row" style="flex-wrap:nowrap;margin-top:6px"><button class="p'+(m===1?' x':'')+'" onclick="rmot('+i+',\''+k+'\',1)">Desgaste</button><button class="p'+(m===2?' x':'')+'" onclick="rmot('+i+',\''+k+'\',2)">No gira</button></div></div>'}
-function sapBlock(i,x){var n=[];if(x.dos===false)n.push("no dosifica");var e=estado(S.cfg.vados[i]);if(e==="BAJA")n.push("dosifica por debajo de lo recomendado");if(e==="ALTA")n.push("dosifica por encima de lo recomendado");if(x.ri===2)n.push("rodillo izquierdo");if(x.rd===2)n.push("rodillo derecho");if(!n.length)return '';
+function sapBlock(i,x){var n=[];var vv=S.cfg.vados[i];if(x.dos===false)n.push("no dosifica");if(x.fn)n.push("no se pone en marcha");if(x.ag)n.push("no dosifica agua");des(vv).forEach(function(q){if(dsx(x,q.id).d===false)n.push("no dosifica "+lcn(q))});var e=estado(S.cfg.vados[i]);if(e==="BAJA")n.push("dosifica por debajo de lo recomendado");if(e==="ALTA")n.push("dosifica por encima de lo recomendado");if(x.ri===2)n.push("rodillo izquierdo");if(x.rd===2)n.push("rodillo derecho");if(!n.length)return '';
   return '<div style="margin-top:10px;padding:10px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74"><div style="font-size:15px;color:#9a3412;font-weight:500">Aviso de mantenimiento (SAP)</div><div class="small" style="margin:2px 0 6px">Para: '+n.join(" · ")+'</div><input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Nº de aviso (solo números)" value="'+esc(x.sap||"")+'" oninput="sap('+i+',this)"><div class="small" style="margin-top:4px">Si aún no lo has creado, déjalo vacío: saldrá como aviso pendiente.</div><button class="p" style="margin-top:8px" onclick="mailVado('+i+')">✉️ Enviar aviso por correo</button></div>'}
 function incVado(i){var v=S.cfg.vados[i],x=S.rev.d[v.n],p=pl(v),e=estado(v),L=[];
   var u=p.uni,pr=p.prod||"el producto";
@@ -113,6 +151,9 @@ function incVado(i){var v=S.cfg.vados[i],x=S.rev.d[v.n],p=pl(v),e=estado(v),L=[]
     if(m===2)L.push({t:"El rodillo "+q[1]+" no gira, por lo que no cumple su función.",r:"que se revise y se repare o sustituya",a:"Rodillo "+q[1]+" no gira"});
     else if(m===1)L.push({t:"El rodillo "+q[1]+" presenta un desgaste que le impide realizar su función con normalidad.",r:"su reposición",a:"Rodillo "+q[1]+" desgastado",rep:1});
     else L.push({t:"El rodillo "+q[1]+" está en mal estado.",r:"que se revise y se repare o sustituya",a:"Rodillo "+q[1]+" en mal estado"})});
+  if(x.fn)L.push({t:"El vado no se pone en marcha.",r:"que se revise y se repare lo antes posible",a:"No se pone en marcha"});
+  if(x.ag)L.push({t:"El vado no dosifica agua.",r:"que se revise y se restablezca la dosificación de agua lo antes posible",a:"No dosifica agua"});
+  des(v).forEach(function(q){if(dsx(x,q.id).d===false)L.push({t:"El dispensador de desinfectante de manos asociado al vado ("+q.nm+") no dosifica.",r:"que se revise y se restablezca su dosificación",a:"Desinfectante de manos no dosifica"})});
   return L}
 function mailVado(i){var v=S.cfg.vados[i],x=S.rev.d[v.n],L=incVado(i);if(!L.length)return;
   var pl_=v.p?" ("+v.p+")":"",nom=v.n+pl_,f=S.rev.fecha,sol;
@@ -123,13 +164,13 @@ function mailVado(i){var v=S.cfg.vados[i],x=S.rev.d[v.n],L=incVado(i);if(!L.leng
   var sub="Vado sanitario · "+v.n.split(" · ").slice(-1)[0]+pl_+" · "+(L.length===1?L[0].a:"Varias incidencias")+" · "+f;
   location.href="mailto:"+(S.cfg.mail||"")+"?subject="+encodeURIComponent(sub)+"&body="+encodeURIComponent(b)}
 function rmot(i,k,m){var x=S.rev.d[S.cfg.vados[i].n];x[k+"m"]=(x[k+"m"]===m)?0:m;sv();draw()}
-function pend(){var r=[];S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n];if(x&&falta(x))r.push(i)});return r}
-function dlg(pn){var fl=0;pn.forEach(function(i){fl+=falta(S.rev.d[S.cfg.vados[i].n])});
+function pend(){var r=[];S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n];if(x&&falta(x,v))r.push(i)});return r}
+function dlg(pn){var fl=0;pn.forEach(function(i){fl+=falta(S.rev.d[S.cfg.vados[i].n],S.cfg.vados[i])});
   var e=document.getElementById("dlg");e.classList.remove("hide");
   e.innerHTML='<div><b style="font-size:19px">Faltan datos</b><p style="margin:8px 0 14px;color:#475569">Quedan '+fl+' datos sin marcar en '+pn.length+' vados (dosificación, garrafa, vado, rodillos o motivo).</p><button style="width:100%;margin-bottom:8px" onclick="verPend()">Ver pendientes</button><button class="sec" style="width:100%" onclick="cerrarDlg();fin(true)">Finalizar igualmente</button></div>'}
 function cerrarDlg(){var e=document.getElementById("dlg");e.classList.add("hide");e.innerHTML=""}
 function verPend(){cerrarDlg();var pn=pend();if(!pn.length)return;var c=document.getElementById("v"+pn[0]);if(!c)return;c.scrollIntoView({block:"start",behavior:"smooth"});c.classList.add("flash");setTimeout(function(){c.classList.remove("flash")},2500)}
-function falta(x){return (x.dos===null?1:0)+(x.gar?0:1)+(x.vad?0:1)+(x.ri?0:1)+(x.rd?0:1)+(x.ri===2&&!x.rim?1:0)+(x.rd===2&&!x.rdm?1:0)}
+function falta(x,v){return (v?dsFalta(v,x):0)+ (x.dos===null?1:0)+(x.gar?0:1)+(x.vad?0:1)+(x.ri?0:1)+(x.rd?0:1)+(x.ri===2&&!x.rim?1:0)+(x.rd===2&&!x.rdm?1:0)}
 var COL=[[0,"#ffef7a"],[10,"#fce36c"],[25,"#d4d16e"],[50,"#a4ba86"],[100,"#82af8d"],[250,"#539f9f"],[500,"#3c92a6"],[1000,"#3a98b1"]];
 function usaCol(v){return (pl(v).prod||"").toLowerCase().indexOf("extra")>-1}
 function colHTML(i,x,p){var s='<label>Compara la tira con la pantalla (mg/L)</label><div style="display:flex;justify-content:space-between;gap:2px;background:#f8fafc;padding:8px 4px 6px;border-radius:14px;border:1px solid #e2e8f0">';
@@ -140,7 +181,7 @@ function dos(i,b){S.rev.d[S.cfg.vados[i].n].dos=b;sv();draw()}
 function sap(i,el){var v=el.value.replace(/[^0-9]/g,'');if(v!==el.value)el.value=v;S.rev.d[S.cfg.vados[i].n].sap=v;sv()}
 function con(i,val){S.rev.d[S.cfg.vados[i].n].con=val;sv()}
 function nota(i,val){S.rev.d[S.cfg.vados[i].n].nota=val;sv()}
-function stats(){var n=S.cfg.vados.length,si=0,no=0,fu=0,pen=0,gv=0,su=0,rm=0,fl=0;S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v);if(x.gar===3)gv++;if(x.vad===2)su++;if(x.ri===2)rm++;if(x.rd===2)rm++;fl+=falta(x);if(x.dos===true)si++;if(x.dos===false)no++;if(e==="BAJA"||e==="ALTA")fu++;if(x.dos===null&&x.con==="")pen++});return {n:n,si:si,no:no,fu:fu,pen:pen,gv:gv,su:su,rm:rm,fl:fl}}
+function stats(){var n=S.cfg.vados.length,si=0,no=0,fu=0,pen=0,gv=0,su=0,rm=0,fl=0;S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v);if(x.gar===3)gv++;if(x.vad===2)su++;if(x.ri===2)rm++;if(x.rd===2)rm++;fl+=falta(x,v);if(x.dos===true)si++;if(x.dos===false)no++;if(e==="BAJA"||e==="ALTA")fu++;if(x.dos===null&&x.con==="")pen++});return {n:n,si:si,no:no,fu:fu,pen:pen,gv:gv,su:su,rm:rm,fl:fl}}
 function setRev(v){S.cfg.revisor=v;var e=document.getElementById("revisor");e.style.borderColor="";sv()}
 function fin(force){var rv=document.getElementById("revisor");if(!(S.cfg.revisor||"").trim()){rv.style.borderColor="#b91c1c";rv.placeholder="Escribe tu nombre para terminar";rv.focus();rv.scrollIntoView();return}
   var pn=pend();if(pn.length&&force!==true){dlg(pn);return}
@@ -178,7 +219,11 @@ async function hacerPdf(){
   var bad=[];
   S.cfg.vados.forEach(function(v){var x=S.rev.d[v.n],e=estado(v),p=pl(v),ms=[];
     var mant=[];if(x.dos===false)mant.push("no dosifica");else if(e==="BAJA"||e==="ALTA")mant.push("concentración "+(e==="BAJA"?"baja":"alta")+" ("+pt(x.con)+" "+p.uni+")");
+    if(x.fn)mant.push("no se pone en marcha");if(x.ag)mant.push("no dosifica agua");
+    des(v).forEach(function(q){var z=dsx(x,q.id);if(z.d===false)mant.push("no dosifica "+lcn(q))});
     if(x.gar===3)ms.push("garrafa vacía");if(x.vad===2)ms.push("vado sucio");
+    des(v).forEach(function(q){if(dsx(x,q.id).g===3)ms.push("garrafa vacía de "+lcn(q))});
+    if(x.ar)ms.push("sucio por la parte de arriba");if(x.ot&&x.ot.trim())ms.push("incidencia: "+x.ot.trim());
     [["ri","izquierdo"],["rd","derecho"]].forEach(function(q){if(x[q[0]]===2)mant.push("rodillo "+q[1]+" mal ("+(x[q[0]+"m"]===1?"desgaste":x[q[0]+"m"]===2?"no gira":"motivo sin indicar")+")")});
     if(mant.length)ms.push(mant.join(" · ")+" · "+(x.sap?"aviso SAP "+x.sap:"aviso SAP pendiente"));
     if(ms.length)bad.push([v,ms.join("; "),x.nota])});
@@ -191,6 +236,7 @@ async function hacerPdf(){
       page.drawCircle({x:M+13,y:yy+3,size:2,color:C("#b91c1c")});
       ls.forEach(function(l,i){tx(l,M+22,yy-i*11,9,F,"#7f1d1d")});yy-=ls.length*11+3});
     y-=bh+18}
+  var IM={};for(var kk in PH){if(kk==="__rev")continue;IM[kk]=[];for(var jj=0;jj<PH[kk].length;jj++){try{var im=await doc.embedJpg(Uint8Array.from(atob(PH[kk][jj].split(",")[1]),function(c){return c.charCodeAt(0)}));IM[kk].push(im)}catch(e){}}}
   var last="",ci=0;
   S.cfg.vados.forEach(function(v,i){var x=S.rev.d[v.n],e=estado(v),p=pl(v),g=v.k||v.p;
     var parts=v.n.split(" · "),mat=parts.shift(),rest=parts.join(" · "),rl=wrap(rest,138,8,F),nl=x.nota?wrap("Nota: "+x.nota,138,8,F):[];
@@ -215,7 +261,19 @@ async function hacerPdf(){
     var G=[null,["LLENA","#dcfce7","#166534"],["MEDIA","#ffedd5","#9a3412"],["VACÍA","#fee2e2","#991b1b"]][x.gar||0];if(G)chip(G[0],cx.g,ty-1,G[1],G[2]);else tx("-",cx.g+4,ty,9,F,"#94a3b8");
     var V=[null,["LIMPIO","#dcfce7","#166534"],["SUCIO","#fee2e2","#991b1b"]][x.vad||0];if(V)chip(V[0],cx.vd,ty-1,V[1],V[2]);else tx("-",cx.vd+4,ty,9,F,"#94a3b8");
     [["I",x.ri,0],["D",x.rd,24]].forEach(function(r){if(r[1]===1)chip(r[0],cx.r+r[2],ty-1,"#dcfce7","#166534");else if(r[1]===2)chip(r[0],cx.r+r[2],ty-1,"#fee2e2","#991b1b");else tx("-",cx.r+r[2]+4,ty,9,F,"#94a3b8")});
-    y-=rh;ci++});
+    y-=rh;
+    var par=(ci%2===0);
+    function sub(h){if(y-h<BOT){np();hdr()}if(par)page.drawRectangle({x:M,y:y-h,width:W-2*M,height:h,color:C("#f8fafc")});}
+    des(v).forEach(function(q){var z=dsx(x,q.id),h=15;sub(h);var ty2=y-11;
+      tx("- "+q.nm,cx.v+6,ty2,7.5,F,"#475569");
+      if(z.d===true)chip("SÍ",cx.s,ty2-1,"#dcfce7","#166534");else if(z.d===false)chip("NO",cx.s,ty2-1,"#fee2e2","#991b1b");else tx("-",cx.s+4,ty2,9,F,"#94a3b8");
+      var G2=[null,["LLENA","#dcfce7","#166534"],["MEDIA","#ffedd5","#9a3412"],["VACÍA","#fee2e2","#991b1b"]][z.g||0];if(G2)chip(G2[0],cx.g,ty2-1,G2[1],G2[2]);else tx("-",cx.g+4,ty2,9,F,"#94a3b8");
+      page.drawLine({start:{x:M,y:y-h},end:{x:W-M,y:y-h},thickness:0.4,color:C("#e2e8f0")});y-=h});
+    var it2=incTxt(x);
+    if(it2.length){var tl=wrap("Incidencia: "+it2.join(" · "),W-2*M-cx.v+M-10,8,F),h2=tl.length*10+6;sub(h2);tl.forEach(function(l,k){tx(l,cx.v,y-10-k*10,8,F,"#991b1b")});page.drawLine({start:{x:M,y:y-h2},end:{x:W-M,y:y-h2},thickness:0.4,color:C("#e2e8f0")});y-=h2}
+    var ims=IM[v.n]||[];
+    if(ims.length){var ph_=80;sub(ph_+8);var px=cx.v;ims.forEach(function(im){var k=Math.min(ph_/im.height,150/im.width),w=im.width*k,hh=im.height*k;page.drawImage(im,{x:px,y:y-4-hh,width:w,height:hh});px+=w+8});page.drawLine({start:{x:M,y:y-ph_-8},end:{x:W-M,y:y-ph_-8},thickness:0.4,color:C("#e2e8f0")});y-=ph_+8}
+    ci++});
   if(y-90<BOT)np();
   y-=14;tx("Rodillos: I = izquierdo, D = derecho · verde = bien, rojo = mal",M,y,7.5,F,"#94a3b8");
   if(y-70<BOT)np();
@@ -236,7 +294,7 @@ async function guardarPdf(){var m=document.getElementById("pdfMsg");
     var u=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);
     m.textContent="PDF descargado. Adjúntalo al correo desde Descargas."}
   catch(e){m.textContent="No se pudo crear el PDF."}}
-function itemsLimp(){var g=[],v=[];S.cfg.vados.forEach(function(d){var x=S.rev.d[d.n]||{};if(x.gar===3)g.push([d,x.nota]);if(x.vad===2)v.push([d,x.nota])});return {g:g,v:v}}
+function itemsLimp(){var g=[],v=[];S.cfg.vados.forEach(function(d){var x=S.rev.d[d.n]||{};if(x.gar===3)g.push([d,x.nota]);des(d).forEach(function(q){if(dsx(x,q.id).g===3)g.push([d,"Desinfectante de manos: "+q.nm+(x.nota?" - "+x.nota:"")])});if(x.vad===2)v.push([d,x.nota]);else if(x.ar)v.push([d,"Sucio por la parte de arriba"+(x.nota?" - "+x.nota:"")])});return {g:g,v:v}}
 function LM(){var e=document.getElementById("limp");if(!e)return;if(!S.rev||!S.rev.fin){e.innerHTML="";return}
   var it=itemsLimp(),n=it.g.length+it.v.length;
   if(!n){e.innerHTML='<b>Parte para limpieza</b><div class="small" style="margin:6px 0">Sin avisos para limpieza.</div>';return}
@@ -309,8 +367,161 @@ function guardarCfg(){
   if(!S.rev)S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};
   S.cfg.vados.forEach(function(v){if(!S.rev.d[v.n])S.rev.d[v.n]={dos:null,con:"",nota:""}});
   sv();verCfg(false);draw()}
+/* ===== CUCHILLOS Y CAJAS ===== */
+var CARROS=[["d1","Despiece · Carro 1 (mañana)","Despiece"],["d2","Despiece · Carro 2 (mañana)","Despiece"],["d3","Despiece · Carro 3 (mañana)","Despiece"],["d4","Despiece · Carro 4 (mañana)","Despiece"],["dA","Despiece · Carro tarde A (por identificar)","Despiece"],["dB","Despiece · Carro tarde B (por identificar)","Despiece"],["m1","Matadero · Carro 1","Matadero"],["m2","Matadero · Carro 2","Matadero"],["c1","Dacor · Carro 1","Dacor"],["c2","Dacor · Carro 2","Dacor"],["c3","Dacor · Carro 3","Dacor"]];
+var LB=["Paleta nueva","Aguja","Panceta","Paleta vieja","Chuleteros"],LS=LB.concat(["Jamones","Corte primario"]);
+var BAL=LB.map(function(n,i){return {id:"b"+i,nm:n,n:5,g:"Baldes"}}).concat(LS.map(function(n,i){return {id:"s"+i,nm:n,n:4,g:"Baldes SANDACH"}}));
+var C=null,PC={};
+function cNew(){return {fecha:hoy(),kini:"",kfin:"",bini:"",bfin:"",k:{},b:{},j:{r:0,s:0,ex:0,s2:0,t:""}}}
+function cLd(){try{var c=localStorage.getItem("vados_cuc3");C=c?JSON.parse(c):cNew()}catch(e){C=cNew()}}
+function cSv(){try{localStorage.setItem("vados_cuc3",JSON.stringify(C))}catch(e){}}
+function pcSave(){idb().then(function(db){if(!db)return;try{db.transaction("f","readwrite").objectStore("f").put(PC,"pc")}catch(e){}})}
+function pcLoad(cb){idb().then(function(db){if(!db){cb();return}try{var q=db.transaction("f").objectStore("f").get("pc");q.onsuccess=function(){if(q.result)PC=q.result;cb()};q.onerror=function(){cb()}}catch(e){cb()}})}
+function kA(id){return C.k[id]||(C.k[id]=[])}
+function bX(id){return C.b[id]||(C.b[id]={r:0,s:0,t:""})}
+function estK(id){var a=kA(id).filter(function(e){return e.m}),n=a.length,m=a.filter(function(e){return e.m===2}).length;
+  if(!n)return {e:"SIN REVISAR",n:0,m:0,need:0,T:5};
+  if(m>=3)return {e:"APARTADO",n:n,m:m,need:0,T:n};
+  var T=m===0?5:m===1?10:15;
+  if(n>=T)return {e:"LIBERADO",n:n,m:m,need:0,T:T};
+  return {e:"EN CURSO",n:n,m:m,need:T-n,T:T}}
+function touchK(){if(!C.kini)C.kini=hora()}
+function touchB(){if(!C.bini)C.bini=hora()}
+function kSet(id,i,m){var e=kA(id)[i];e.m=e.m===m?0:m;touchK();cSv();drawC()}
+function kNum(id,i,v){kA(id)[i].n=v;cSv()}
+function kTxt(id,i,v){kA(id)[i].t=v;cSv()}
+function kAdd(id){kA(id).push({n:"",m:0,t:""});cSv();drawC()}
+function kDel(id){var a=kA(id);if(a.length){var i=a.length-1;a.pop();delete PC["k|"+id+"|"+i];pcSave()}cSv();drawC()}
+function bSet(id,k,v){var x=id==="j"?C.j:bX(id);x[k]=v;touchB();cSv();drawC()}
+function bTxt(id,v){(id==="j"?C.j:bX(id)).t=v;cSv()}
+function bTg(id){var x=id==="j"?C.j:bX(id);x.r=x.r?0:1;touchB();cSv();drawC()}
+function cHora(k){if(C[k+"fin"])C[k+"fin"]="";else C[k+"fin"]=hora();cSv();drawC()}
+function cFoto(key,el,max){var f=el.files&&el.files[0];if(!f)return;PC[key]=PC[key]||[];if(PC[key].length>=max){el.value="";return}
+  var u=URL.createObjectURL(f),im=new Image();im.onload=function(){var m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);PC[key].push(c.toDataURL("image/jpeg",0.65));URL.revokeObjectURL(u);pcSave();drawC()};im.onerror=function(){URL.revokeObjectURL(u)};im.src=u;el.value=""}
+function cFotoDel(key,k){(PC[key]||[]).splice(k,1);pcSave();drawC()}
+function fotoUI(key,max,esc_){var ph=PC[key]||[],a=esc_.replace(/'/g,"\\'");
+  return '<div class="row" style="margin-top:8px">'+ph.map(function(d,k){return '<div style="position:relative"><img src="'+d+'" style="width:76px;height:76px;object-fit:cover;border-radius:10px"><button onclick="cFotoDel(\''+a+'\','+k+')" style="position:absolute;top:2px;right:2px;padding:0;width:24px;height:24px;border-radius:12px;background:#b91c1c">✕</button></div>'}).join('')+
+  (ph.length<max?'<label class="p" style="flex:none;display:flex;align-items:center;justify-content:center;width:76px;height:76px;margin:0;font-size:13px;padding:4px;border-radius:10px">📷 Foto<input type="file" accept="image/*" hidden onchange="cFoto(\''+a+'\',this,'+max+')"></label>':'')+'</div>'}
+function chipH(t){var c=t==="LIBERADO"||t==="OK"?"ok":(t==="APARTADO"||/SUCI/.test(t))?"mal":"nd";return '<span class="badge '+c+'" style="font-size:13px">'+t+'</span>'}
+function det(id,sum,body){return '<details id="'+id+'" class="card" style="padding:10px 12px"'+(OP[id]?' open':'')+' ontoggle="OP[this.id]=this.open"><summary style="font-weight:600;font-size:16px">'+sum+'</summary>'+body+'</details>'}
+function drawC(){var h='',el=document.getElementById("cuc");if(!el)return;
+  h+='<div class="card row" style="justify-content:space-between"><div><div class="small">Fecha</div><b>'+esc(C.fecha)+'</b></div></div>';
+  h+='<div class="card"><b>Horas</b>'+[["k","Cuchillos"],["b","Baldes, SANDACH y jumbos"]].map(function(q){return '<div class="row" style="justify-content:space-between;margin-top:8px"><div><div class="small">'+q[1]+'</div><b>'+(C[q[0]+"ini"]||"—")+' – '+(C[q[0]+"fin"]||"—")+'</b></div><button class="'+(C[q[0]+"fin"]?"sec":"")+'" onclick="cHora(\''+q[0]+'\')">'+(C[q[0]+"fin"]?"Reabrir":"Fin")+'</button></div>'}).join('')+'<div class="small" style="margin-top:6px">La hora de inicio se apunta al marcar lo primero de cada bloque.</div></div>';
+  h+='<div class="card" style="background:#eef6fb"><b>Cuchillos por carro</b><div class="small">Se empieza con 5 cuchillos. Si 1 sale mal se revisan 5 más; si sale otro, otros 5 (máx. 15). Con 3 mal el carro se aparta.</div></div>';
+  var g="";
+  CARROS.forEach(function(c){var id=c[0],a=kA(id),s=estK(id);
+    while(a.length<Math.max(5,s.T))a.push({n:"",m:0,t:""});
+    if(c[2]!==g){g=c[2];h+='<h1>'+g+'</h1>'}
+    var b='';
+    if(s.e==="APARTADO")b+='<div class="small" style="margin-top:6px;color:#991b1b"><b>Carro apartado:</b> hay que volver a lavarlo.</div>';
+    else if(s.need)b+='<div class="small" style="margin-top:6px;color:#9a3412">Faltan '+s.need+' cuchillos (hasta '+s.T+').</div>';
+    a.forEach(function(e,i){var k="k|"+id+"|"+i;
+      b+='<div style="margin-top:8px;padding:8px;border-radius:12px;background:#f1f5f9"><div class="row" style="flex-wrap:nowrap"><span class="small" style="width:18px">'+(i+1)+'</span><input class="n" style="width:70px;flex:none" placeholder="Nº" inputmode="numeric" value="'+esc(e.n||"")+'" oninput="kNum(\''+id+'\','+i+',this.value)">'+
+      '<button class="p'+(e.m===1?' v':'')+'" onclick="kSet(\''+id+'\','+i+',1)">Bien</button><button class="p'+(e.m===2?' x':'')+'" onclick="kSet(\''+id+'\','+i+',2)">Mal</button></div>'+
+      (e.m===2?'<input style="margin-top:6px" placeholder="Restos (qué y cuántos)" value="'+esc(e.t||"")+'" oninput="kTxt(\''+id+'\','+i+',this.value)">'+fotoUI(k,1,k):'')+'</div>'});
+    b+='<div class="row" style="margin-top:8px"><button class="sec" onclick="kAdd(\''+id+'\')">+ Cuchillo</button><button class="sec" onclick="kDel(\''+id+'\')">Quitar último</button></div>';
+    h+=det("ck"+id,esc(c[1])+' '+chipH(s.e)+(s.n?' <span class="small">'+s.n+' rev. · '+s.m+' mal</span>':''),b)});
+  h+='<h1>Baldes y jumbos</h1>';
+  g="";
+  BAL.forEach(function(l){var x=bX(l.id),k="b|"+l.id;
+    if(l.g!==g){g=l.g;h+='<div class="card" style="background:#eef6fb"><b>'+g+'</b><div class="small">'+l.n+' baldes por línea</div></div>'}
+    var st=x.r?(x.s>0?x.s+" SUCIOS":"OK"):"SIN REVISAR";
+    var b='<label>Baldes sucios (de '+l.n+')</label><div class="row">'+[0,1,2,3,4,5].filter(function(n){return n<=l.n}).map(function(n){return '<button class="p'+(x.s===n?(n?' x':' v'):'')+'" style="flex:none;width:44px" onclick="bSet(\''+l.id+'\',\'s\','+n+')">'+n+'</button>'}).join('')+'</div>'+
+    (x.s>0?'<input style="margin-top:6px" placeholder="Restos / observación" value="'+esc(x.t||"")+'" oninput="bTxt(\''+l.id+'\',this.value)">'+fotoUI(k,2,k):'')+
+    '<button class="'+(x.r?"sel-si":"sec")+'" style="margin-top:10px;width:100%" onclick="bTg(\''+l.id+'\')">'+(x.r?'✔ Revisada':'Marcar línea revisada')+'</button>';
+    h+=det("cb"+l.id,esc(l.nm)+' '+chipH(st),b)});
+  var j=C.j,tj=(j.s||0)+(j.ex?(j.s2||0):0),sj=j.r?(tj>0?tj+" SUCIOS":"OK"):"SIN REVISAR";
+  function stp(k,mx){var o='';for(var n=0;n<=mx;n++)o+='<button class="p'+(j[k]===n?(n?' x':' v'):'')+'" style="flex:none;width:44px" onclick="bSet(\'j\',\''+k+'\','+n+')">'+n+'</button>';return o}
+  var bj='<div class="small">5 jumbos en total (solo Despiece). Si hay incidencia se revisan 5 más y se comunica en el informe.</div><label>Jumbos sucios (de 5)</label><div class="row">'+stp("s",5)+'</div>'+
+   (j.s>0?'<button class="'+(j.ex?"sel-no":"sec")+'" style="margin-top:8px;width:100%" onclick="bSet(\'j\',\'ex\','+(j.ex?0:1)+')">'+(j.ex?'✔ Revisados 5 más':'Revisar 5 más')+'</button>':'')+
+   (j.ex?'<label>Sucios en los 5 más</label><div class="row">'+stp("s2",5)+'</div>':'')+
+   (tj>0?'<input style="margin-top:6px" placeholder="Restos / observación" value="'+esc(j.t||"")+'" oninput="bTxt(\'j\',this.value)">'+fotoUI("b|j",2,"b|j"):'')+
+   '<button class="'+(j.r?"sel-si":"sec")+'" style="margin-top:10px;width:100%" onclick="bTg(\'j\')">'+(j.r?'✔ Revisados':'Marcar jumbos revisados')+'</button>';
+  h+='<div class="card" style="background:#eef6fb"><b>Jumbos</b></div>'+det("cbj",'Jumbos '+chipH(sj),bj);
+  el.innerHTML=h}
+function cNueva(btn){if(btn.dataset.s!=="1"){btn.dataset.s="1";btn.textContent="¿Seguro? Borra todo";setTimeout(function(){btn.dataset.s="";btn.textContent="Nueva"},3000);return}
+  C=cNew();PC={};cSv();pcSave();drawC();document.getElementById("cMsg").textContent="";window.scrollTo(0,0)}
+function cTieneK(){return CARROS.some(function(c){return kA(c[0]).some(function(e){return e.m})})}
+function cData(){var K=CARROS.filter(function(c){return kA(c[0]).some(function(e){return e.m})});
+  var B=BAL.filter(function(l){var x=bX(l.id);return x.r||x.s>0});var J=(C.j.r||C.j.s>0)?C.j:null;return {K:K,B:B,J:J}}
+async function hacerPdfC(){
+  var P=window.PDFLib;if(!P)return null;var D=cData();if(!D.K.length&&!D.B.length&&!D.J)return "vacio";
+  var doc=await P.PDFDocument.create(),F=await doc.embedFont(P.StandardFonts.Helvetica),B=await doc.embedFont(P.StandardFonts.HelveticaBold);
+  var W=595.28,H=841.89,M=36,BOT=50,page,y;
+  function Cc(h){return P.rgb(parseInt(h.substr(1,2),16)/255,parseInt(h.substr(3,2),16)/255,parseInt(h.substr(5,2),16)/255)}
+  function tx(t,x,yy,sz,f,col){page.drawText(String(t),{x:x,y:yy,size:sz,font:f||F,color:Cc(col||"#1a1d21")})}
+  function wid(t,sz,f){return (f||F).widthOfTextAtSize(String(t),sz)}
+  function wrap(t,mw,sz,f){var w=String(t).split(" "),l=[],c="";w.forEach(function(p){var n=c?c+" "+p:p;if(wid(n,sz,f)>mw&&c){l.push(c);c=p}else c=n});if(c)l.push(c);return l}
+  function rr(x,top,w,h,r,col){var p="M "+r+" 0 H "+(w-r)+" Q "+w+" 0 "+w+" "+r+" V "+(h-r)+" Q "+w+" "+h+" "+(w-r)+" "+h+" H "+r+" Q 0 "+h+" 0 "+(h-r)+" V "+r+" Q 0 0 "+r+" 0 Z";page.drawSvgPath(p,{x:x,y:top,color:Cc(col)})}
+  function chip(t,x,yBase,bg,fg){var w=wid(t,8,B)+14;rr(x,yBase+10,w,13,6.5,bg);tx(t,x+7,yBase,8,B,fg)}
+  function np(){page=doc.addPage([W,H]);y=H-M}
+  async function imgs(key){var o=[],a=PC[key]||[];for(var i=0;i<a.length;i++){try{o.push(await doc.embedJpg(Uint8Array.from(atob(a[i].split(",")[1]),function(c){return c.charCodeAt(0)})))}catch(e){}}return o}
+  var rev=(S.cfg.revisor||"").trim();
+  np();page.drawRectangle({x:0,y:H-92,width:W,height:92,color:Cc("#1e3a8a")});
+  tx("Revisión de cuchillos y cajas",M,H-46,22,B,"#ffffff");tx("Informe de revisión · "+C.fecha,M,H-66,10.5,F,"#bfdbfe");
+  y=H-92-26;
+  var meta=[["FECHA",C.fecha]];
+  if(D.K.length)meta.push(["HORA CUCHILLOS",(C.kini||"-")+" - "+(C.kfin||"-")]);
+  if(D.B.length||D.J)meta.push(["HORA BALDES Y JUMBOS",(C.bini||"-")+" - "+(C.bfin||"-")]);
+  meta.push(["REVISOR",rev]);
+  var mw=(W-2*M)/meta.length;meta.forEach(function(m,i){var x=M+i*mw;tx(m[0],x,y,8,B,"#64748b");tx(m[1],x,y-14,11,B)});
+  y-=44;
+  var ap=D.K.filter(function(c){return estK(c[0]).e==="APARTADO"}).length,lib=D.K.filter(function(c){return estK(c[0]).e==="LIBERADO"}).length;
+  var bs=D.B.filter(function(l){return bX(l.id).s>0}).length,js=D.J?((D.J.s||0)+(D.J.ex?(D.J.s2||0):0)):0;
+  var T=[["Carros revisados",D.K.length,"#1e3a8a"],["Liberados",lib,"#166534"],["Apartados",ap,ap?"#b91c1c":"#334155"],["Líneas con baldes sucios",bs,bs?"#b91c1c":"#334155"],["Jumbos sucios",js,js?"#b91c1c":"#334155"]],tw=(W-2*M-4*8)/5;
+  T.forEach(function(t,i){var x=M+i*(tw+8);rr(x,y,tw,50,8,"#f1f5f9");tx(t[1],x+10,y-28,22,B,t[2]);tx(t[0],x+10,y-43,7.5,F,"#64748b")});
+  y-=50+20;
+  var bad=[];
+  D.K.forEach(function(c){var s=estK(c[0]);if(s.e==="APARTADO")bad.push(c[1]+": carro apartado ("+s.m+" cuchillos mal de "+s.n+"), hay que volver a lavarlo");else if(s.m)bad.push(c[1]+": "+s.m+" cuchillo"+(s.m>1?"s":"")+" con restos de "+s.n+" revisados, carro liberado")});
+  D.B.forEach(function(l){var x=bX(l.id);if(x.s>0)bad.push(l.g+" · "+l.nm+": "+x.s+" de "+l.n+" baldes sucios"+(x.t?" ("+x.t+")":""))});
+  if(D.J&&js>0)bad.push("Jumbos: "+D.J.s+" sucios de 5"+(D.J.ex?" y "+(D.J.s2||0)+" más en los 5 siguientes":"")+(D.J.t?" ("+D.J.t+")":""));
+  if(bad.length){tx("Puntos a revisar",M,y,13,B,"#991b1b");y-=8;var bh=14,L=bad.map(function(b){var l=wrap(b,W-2*M-30,9,F);bh+=l.length*11+3;return l});
+    if(y-bh<BOT)np();rr(M,y,W-2*M,bh,8,"#fef2f2");var yy=y-18;
+    L.forEach(function(ls){page.drawCircle({x:M+13,y:yy+3,size:2,color:Cc("#b91c1c")});ls.forEach(function(l,i){tx(l,M+22,yy-i*11,9,F,"#7f1d1d")});yy-=ls.length*11+3});y-=bh+18}
+  function band(t,sub){if(y-70<BOT)np();rr(M,y,W-2*M,24,6,"#e0e7ff");tx(t,M+10,y-16,11.5,B,"#1e3a8a");if(sub){var w=wid(sub,8.5,F);tx(sub,W-M-10-w,y-16,8.5,F,"#4338ca")}y-=24+4}
+  async function fila(i,nom,chipT,col,cnt,lines,keys){
+    var ims=[];for(var q=0;q<keys.length;q++)ims=ims.concat(await imgs(keys[q]));
+    var nl=wrap(nom,230,9.5,B),ll=[];lines.forEach(function(l){wrap(l,W-2*M-30,8,F).forEach(function(z){ll.push(z)})});
+    var rh=Math.max(24,8+nl.length*11)+ll.length*10+(ims.length?88:0)+4;
+    if(y-rh<BOT)np();
+    if(i%2===0)page.drawRectangle({x:M,y:y-rh,width:W-2*M,height:rh,color:Cc("#f8fafc")});
+    page.drawLine({start:{x:M,y:y-rh},end:{x:W-M,y:y-rh},thickness:0.4,color:Cc("#e2e8f0")});
+    nl.forEach(function(l,k){tx(l,M+8,y-14-k*11,9.5,B)});chip(chipT,M+270,y-15,col[0],col[1]);tx(cnt,M+360,y-14,8.5,F,"#334155");
+    var ty=y-14-Math.max(1,nl.length)*11-2;ll.forEach(function(l){tx(l,M+14,ty,8,F,"#991b1b");ty-=10});
+    if(ims.length){var px=M+14;ims.forEach(function(im){var k=Math.min(80/im.height,150/im.width),w=im.width*k,hh=im.height*k;page.drawImage(im,{x:px,y:ty-hh+4,width:w,height:hh});px+=w+8})}
+    y-=rh}
+  var CO={LIBERADO:["#dcfce7","#166534"],APARTADO:["#fee2e2","#991b1b"],"EN CURSO":["#ffedd5","#9a3412"],OK:["#dcfce7","#166534"],SUCIOS:["#fee2e2","#991b1b"]};
+  var gs=["Despiece","Matadero","Dacor"];
+  for(var gi=0;gi<gs.length;gi++){var cs=D.K.filter(function(c){return c[2]===gs[gi]});if(!cs.length)continue;
+    band("Cuchillos · "+gs[gi],"carros revisados: "+cs.length);
+    for(var ci=0;ci<cs.length;ci++){var c=cs[ci],s=estK(c[0]),ln=[],ks=[];
+      kA(c[0]).forEach(function(e,i){if(e.m===2){ln.push("Cuchillo "+(e.n?"nº "+e.n:"(sin nº)")+": mal"+(e.t?" - "+e.t:""));ks.push("k|"+c[0]+"|"+i)}});
+      if(s.e==="EN CURSO")ln.unshift("Revisión sin terminar: faltan "+s.need+" cuchillos");
+      await fila(ci,c[1].replace(gs[gi]+" · ",""),s.e,CO[s.e],s.n+" revisados · "+s.m+" mal",ln,ks)}
+    y-=14}
+  async function bloque(titulo,sub,list){if(!list.length)return;band(titulo,sub);
+    for(var i=0;i<list.length;i++){var l=list[i],x=bX(l.id),st=x.r?(x.s>0?"SUCIOS":"OK"):"EN CURSO";
+      await fila(i,l.nm,x.r?st:"SIN CERRAR",x.r?CO[st]:["#e5e7eb","#475569"],x.s+" sucios de "+l.n,x.s>0&&x.t?["Observación: "+x.t]:[],["b|"+l.id])}y-=14}
+  await bloque("Baldes por línea","5 baldes por línea",D.B.filter(function(l){return l.g==="Baldes"}));
+  await bloque("Baldes SANDACH","4 baldes por línea",D.B.filter(function(l){return l.g!=="Baldes"}));
+  if(D.J){band("Jumbos","5 en Despiece");var jl=[];if(D.J.s>0&&D.J.t)jl.push("Observación: "+D.J.t);if(D.J.ex)jl.push("Se revisaron 5 jumbos más: "+(D.J.s2||0)+" sucios");
+    await fila(0,"Jumbos (Despiece)",D.J.r?(js>0?"SUCIOS":"OK"):"SIN CERRAR",D.J.r?CO[js>0?"SUCIOS":"OK"]:["#e5e7eb","#475569"],js+" sucios",jl,["b|j"]);y-=14}
+  if(y-70<BOT)np();y-=14;tx("Revisado por",M,y,8,B,"#64748b");tx(rev,M,y-14,11,B);
+  page.drawLine({start:{x:W-M-200,y:y-34},end:{x:W-M,y:y-34},thickness:0.6,color:Cc("#94a3b8")});tx("Firma",W-M-200,y-46,8,F,"#64748b");
+  var pgs=doc.getPages();pgs.forEach(function(pg,i){pg.drawLine({start:{x:M,y:32},end:{x:W-M,y:32},thickness:0.4,color:Cc("#cbd5e1")});pg.drawText("Revisión de cuchillos y cajas · "+C.fecha,{x:M,y:20,size:8,font:F,color:Cc("#94a3b8")});var t="Página "+(i+1)+" de "+pgs.length;pg.drawText(t,{x:W-M-F.widthOfTextAtSize(t,8),y:20,size:8,font:F,color:Cc("#94a3b8")})});
+  return await doc.save()}
+async function cPdf(){var m=document.getElementById("cMsg");
+  if(!(S.cfg.revisor||"").trim()){m.textContent="Escribe tu nombre como revisor en la pestaña Vados.";return}
+  try{var bytes=await hacerPdfC();if(bytes==="vacio"){m.textContent="No hay nada apuntado: no se crea PDF.";return}if(!bytes){m.textContent="No se ha podido crear el PDF.";return}
+    var fn="Cuchillos_y_cajas_"+C.fecha.split("/").reverse().join("-")+".pdf",file=new File([bytes],fn,{type:"application/pdf"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:"Revisión de cuchillos y cajas"});m.textContent="Listo.";return}catch(e){if(e&&e.name==="AbortError"){m.textContent="Cancelado.";return}}}
+    var u=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);m.textContent="PDF descargado."}
+  catch(e){m.textContent="No se pudo crear el PDF."}}
+function tab(n){var c=n===1;document.getElementById("main").classList.toggle("hide",c);document.getElementById("bar1").classList.toggle("hide",c);document.getElementById("cucw").classList.toggle("hide",!c);document.getElementById("bar2").classList.toggle("hide",!c);
+  document.getElementById("t0").className=c?"sec":"";document.getElementById("t1").className=c?"":"sec";if(c)drawC();window.scrollTo(0,0)}
+cLd();
 ld();document.getElementById("revisor").value=S.cfg.revisor||"";if(!S.rev)S.rev={ini:hora(),fecha:hoy(),fin:null,d:{}};
 S.cfg.vados.forEach(function(v){if(!S.rev.d[v.n])S.rev.d[v.n]={dos:null,con:"",nota:""}});
-draw();
+draw();phLoad(draw);pcLoad(function(){});
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
 </script></body></html>
